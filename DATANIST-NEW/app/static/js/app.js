@@ -547,22 +547,14 @@ function initDashboardPanels() {
       return true;
     }
 
-    const hashTarget = String(window.location.hash || "").replace(/^#/, "");
     const defaultTarget = links[0].dataset.sectionTarget;
-    const initialTarget = panelIds.has(hashTarget) ? hashTarget : defaultTarget;
-    activatePanel(initialTarget);
+    activatePanel(defaultTarget);
 
     links.forEach((link) => {
       link.addEventListener("click", (event) => {
         event.preventDefault();
         const targetId = link.dataset.sectionTarget;
-        if (!activatePanel(targetId)) return;
-
-        if (window.history && typeof window.history.replaceState === "function") {
-          window.history.replaceState(null, "", `#${targetId}`);
-        } else {
-          window.location.hash = targetId;
-        }
+        activatePanel(targetId);
       });
     });
   });
@@ -574,24 +566,26 @@ async function initLogin() {
 
   const loginEmail = byId("login-email");
   const loginPassword = byId("login-password");
-  const autofillBtn = byId("login-autofill-btn");
-  const autofillRole = byId("login-autofill-role");
+  const autofillButtons = document.querySelectorAll(".demo-autofill-btn[data-demo-role]");
   const loginError = byId("login-error");
 
-  if (autofillBtn && autofillRole && loginEmail && loginPassword) {
+  if (autofillButtons.length && loginEmail && loginPassword) {
     const demoAccounts = {
       mentor: { email: "mentor@holberton.az", password: "Mentor123!" },
       student: { email: "student@holberton.az", password: "Student123!" },
       ssm: { email: "ssm@holberton.az", password: "SSM123!" },
     };
 
-    autofillBtn.addEventListener("click", () => {
-      const selected = demoAccounts[autofillRole.value] || demoAccounts.mentor;
-      loginEmail.value = selected.email;
-      loginPassword.value = selected.password;
-      if (loginError) {
-        loginError.textContent = "";
-      }
+    autofillButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const role = button.dataset.demoRole;
+        const selected = demoAccounts[role] || demoAccounts.mentor;
+        loginEmail.value = selected.email;
+        loginPassword.value = selected.password;
+        if (loginError) {
+          loginError.textContent = "";
+        }
+      });
     });
   }
 
