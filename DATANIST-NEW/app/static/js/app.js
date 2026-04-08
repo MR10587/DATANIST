@@ -11,6 +11,35 @@ function byId(id) {
   return document.getElementById(id);
 }
 
+function initSectionSwitchers() {
+  const switchers = document.querySelectorAll("[data-section-switcher]");
+  if (!switchers.length) return;
+
+  switchers.forEach((switcher) => {
+    const sectionGroup = switcher.dataset.sectionGroup;
+    if (!sectionGroup) return;
+
+    const sections = Array.from(document.querySelectorAll(`[data-section-group="${sectionGroup}"]`));
+    if (!sections.length) return;
+
+    const visibleIds = new Set(sections.map((section) => section.dataset.sectionId).filter(Boolean));
+    if (!visibleIds.size) return;
+
+    if (!visibleIds.has(switcher.value)) {
+      switcher.value = sections[0].dataset.sectionId;
+    }
+
+    const applySelection = () => {
+      sections.forEach((section) => {
+        section.classList.toggle("hidden", section.dataset.sectionId !== switcher.value);
+      });
+    };
+
+    applySelection();
+    switcher.addEventListener("change", applySelection);
+  });
+}
+
 function escapeHtml(value) {
   return String(value || "")
     .replace(/&/g, "&amp;")
@@ -1301,6 +1330,7 @@ async function renderStaffInsights(prefix, students) {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
+  initSectionSwitchers();
   await initLogin();
   await initStudentDashboard();
   await initMentorDashboard();

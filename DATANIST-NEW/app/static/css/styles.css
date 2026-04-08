@@ -129,6 +129,10 @@ textarea:focus {
   gap: 10px;
 }
 
+.card [data-section-switcher] {
+  max-width: 320px;
+}
+
 .insights-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

@@ -7,16 +7,29 @@
 </section>
 
 <section class="card">
+  <label for="mentor-section-picker">Choose section</label>
+  <select id="mentor-section-picker" data-section-switcher data-section-group="mentor-dashboard">
+    <option value="mentor-notifications-section">Notifications</option>
+    <option value="mentor-analytics-section">Analytics</option>
+    <option value="mentor-exam-section">Exam Section</option>
+    <option value="mentor-review-section">Review Panel</option>
+    <option value="mentor-interview-section">Interview Section</option>
+    <option value="mentor-calendar-section">Calendar</option>
+    <option value="mentor-event-section">Event Section</option>
+  </select>
+</section>
+
+<section class="card" data-section-group="mentor-dashboard" data-section-id="mentor-notifications-section">
   <h3>Notifications</h3>
   <div id="mentor-notification-list" class="stack"></div>
 </section>
 
-<section class="card">
+<section class="card" data-section-group="mentor-dashboard" data-section-id="mentor-analytics-section">
   <h3>Analytics</h3>
   <div id="mentor-analytics-list"></div>
 </section>
 
-<section class="card">
+<section class="card" data-section-group="mentor-dashboard" data-section-id="mentor-exam-section">
   <div class="row between">
     <h3>Exam Section</h3>
     <button id="new-exam-btn" class="btn">Create New Exam</button>
@@ -39,13 +52,13 @@
   </form>
 </section>
 
-<section class="card">
+<section class="card" data-section-group="mentor-dashboard" data-section-id="mentor-review-section">
   <h3>Review Panel</h3>
   <p class="muted">Click a student to expand profile, exam, and CV details.</p>
   <div id="mentor-students" class="stack"></div>
 </section>
 
-<section class="card">
+<section class="card" data-section-group="mentor-dashboard" data-section-id="mentor-interview-section">
   <div class="row between">
     <h3>Interview Section</h3>
     <button id="new-interview-btn" class="btn">Create Interview</button>
@@ -68,7 +81,7 @@
   <div class="stack" id="mentor-interview-list"></div>
 </section>
 
-<section class="card">
+<section class="card" data-section-group="mentor-dashboard" data-section-id="mentor-calendar-section">
   <h3>Calendar</h3>
   <div class="calendar-toolbar">
     <label for="mentor-calendar-month-filter">Month view</label>
@@ -78,7 +91,7 @@
   <div id="mentor-calendar-list" class="stack"></div>
 </section>
 
-<section class="card">
+<section class="card" data-section-group="mentor-dashboard" data-section-id="mentor-event-section">
   <div class="row between">
     <h3>Event Section</h3>
     <button id="new-event-btn" class="btn">Create Event</button>

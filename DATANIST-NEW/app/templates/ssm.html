@@ -7,22 +7,34 @@
 </section>
 
 <section class="card">
+  <label for="ssm-section-picker">Choose section</label>
+  <select id="ssm-section-picker" data-section-switcher data-section-group="ssm-dashboard">
+    <option value="ssm-notifications-section">Notifications</option>
+    <option value="ssm-analytics-section">Analytics</option>
+    <option value="ssm-review-section">Review Panel</option>
+    <option value="ssm-interview-section">Interview Section</option>
+    <option value="ssm-calendar-section">Calendar</option>
+    <option value="ssm-event-section">Event Section</option>
+  </select>
+</section>
+
+<section class="card" data-section-group="ssm-dashboard" data-section-id="ssm-notifications-section">
   <h3>Notifications</h3>
   <div id="ssm-notification-list" class="stack"></div>
 </section>
 
-<section class="card">
+<section class="card" data-section-group="ssm-dashboard" data-section-id="ssm-analytics-section">
   <h3>Analytics</h3>
   <div id="ssm-analytics-list"></div>
 </section>
 
-<section class="card">
+<section class="card" data-section-group="ssm-dashboard" data-section-id="ssm-review-section">
   <h3>Review Panel</h3>
   <p class="muted">Click a student to expand profile, exam, and CV details.</p>
   <div id="ssm-students" class="stack"></div>
 </section>
 
-<section class="card">
+<section class="card" data-section-group="ssm-dashboard" data-section-id="ssm-interview-section">
   <div class="row between">
     <h3>Interview Section</h3>
     <button id="new-ssm-interview-btn" class="btn">Create Interview</button>
@@ -45,7 +57,7 @@
   <div class="stack" id="ssm-interview-list"></div>
 </section>
 
-<section class="card">
+<section class="card" data-section-group="ssm-dashboard" data-section-id="ssm-calendar-section">
   <h3>Calendar</h3>
   <div class="calendar-toolbar">
     <label for="ssm-calendar-month-filter">Month view</label>
@@ -55,7 +67,7 @@
   <div id="ssm-calendar-list" class="stack"></div>
 </section>
 
-<section class="card">
+<section class="card" data-section-group="ssm-dashboard" data-section-id="ssm-event-section">
   <div class="row between">
     <h3>Event Section</h3>
     <button id="new-ssm-event-btn" class="btn">Create Event</button>
