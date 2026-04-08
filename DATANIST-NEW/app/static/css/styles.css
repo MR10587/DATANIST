@@ -5,6 +5,7 @@
   --muted: #6a5660;
   --brand: #e1003c;
   --brand-strong: #b40030;
+  --brand-gradient-start: #ef0f4f;
   --brand-soft: #ffe7ee;
   --line: #ecd5dd;
   --danger: #a31636;
@@ -18,7 +19,7 @@
 
 body {
   margin: 0;
-  font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   color: var(--ink);
   background:
     radial-gradient(circle at 15% 15%, rgba(225, 0, 60, 0.14), transparent 38%),
@@ -98,6 +99,10 @@ textarea:focus {
   box-shadow: 0 0 0 4px rgba(225, 0, 60, 0.14);
 }
 
+textarea {
+  resize: vertical;
+}
+
 .stack {
   display: grid;
   gap: 10px;
@@ -105,7 +110,7 @@ textarea:focus {
 
 .btn {
   border: none;
-  background: linear-gradient(180deg, #ef0f4f 0%, var(--brand) 100%);
+  background: linear-gradient(180deg, var(--brand-gradient-start) 0%, var(--brand) 100%);
   color: #fff;
   padding: 10px 14px;
   border-radius: 10px;
