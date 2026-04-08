@@ -27,7 +27,7 @@
   --shadow-button: 0 8px 16px rgba(161, 22, 54, 0.22);
   --shadow-button-hover: 0 12px 24px rgba(132, 16, 43, 0.28);
   --focus-ring: 0 0 0 4px rgba(225, 0, 60, 0.14);
-  --z-topbar: 20;
+  --z-topbar: 1000;
 }
 
 * {
@@ -38,6 +38,10 @@ body {
   margin: 0;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   color: var(--ink);
+  background:
+    radial-gradient(circle at 15% 15%, rgba(225, 0, 60, 0.14), transparent 38%),
+    radial-gradient(circle at 85% 0%, rgba(180, 0, 48, 0.1), transparent 34%),
+    var(--bg);
   background:
     radial-gradient(circle at 15% 15%, rgba(var(--brand-rgb), 0.14), transparent 38%),
     radial-gradient(circle at 85% 0%, rgba(var(--brand-strong-rgb), 0.1), transparent 34%),
@@ -159,7 +163,7 @@ textarea:focus {
 .btn-secondary:hover {
   background: var(--secondary-hover-bg);
   box-shadow: none;
-  filter: brightness(0.98);
+  filter: brightness(0.95);
 }
 
 .error {
