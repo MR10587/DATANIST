@@ -5,8 +5,19 @@
   --muted: #6a5660;
   --brand: #e1003c;
   --brand-strong: #b40030;
+  --brand-rgb: 225, 0, 60;
+  --brand-strong-rgb: 180, 0, 48;
   --brand-gradient-start: #ef0f4f;
   --brand-soft: #ffe7ee;
+  --label-color: #412a33;
+  --input-border: #dcb7c2;
+  --secondary-border: #d8a9b7;
+  --plan-bg: #fff7f9;
+  --plan-border: #f0c7d4;
+  --surface-soft: #fff9fb;
+  --credentials-border: #e4becb;
+  --credentials-color: #4f3c45;
+  --heading-color: #281c22;
   --line: #ecd5dd;
   --danger: #a31636;
   --shadow-soft: 0 10px 24px rgba(161, 22, 54, 0.08);
@@ -26,8 +37,8 @@ body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   color: var(--ink);
   background:
-    radial-gradient(circle at 15% 15%, rgba(225, 0, 60, 0.14), transparent 38%),
-    radial-gradient(circle at 85% 0%, rgba(180, 0, 48, 0.1), transparent 34%),
+    radial-gradient(circle at 15% 15%, rgba(var(--brand-rgb), 0.14), transparent 38%),
+    radial-gradient(circle at 85% 0%, rgba(var(--brand-strong-rgb), 0.1), transparent 34%),
     var(--bg);
 }
 
@@ -85,7 +96,7 @@ li {
 label {
   font-size: 14px;
   font-weight: 600;
-  color: #412a33;
+  color: var(--label-color);
 }
 
 input,
@@ -93,7 +104,7 @@ select,
 textarea {
   width: 100%;
   padding: 11px 12px;
-  border: 1px solid #dcb7c2;
+  border: 1px solid var(--input-border);
   border-radius: 10px;
   margin-top: 4px;
   background: #fff;
@@ -139,7 +150,7 @@ textarea:focus {
 .btn-secondary {
   background: #fff;
   color: var(--brand-strong);
-  border: 1px solid #d8a9b7;
+  border: 1px solid var(--secondary-border);
   box-shadow: none;
 }
 
@@ -174,31 +185,31 @@ textarea:focus {
 
 .plan {
   white-space: pre-wrap;
-  background: #fff7f9;
-  border: 1px solid #f0c7d4;
+  background: var(--plan-bg);
+  border: 1px solid var(--plan-border);
   border-radius: 10px;
   padding: 10px;
 }
 
 .exam-item {
-  border: 1px solid #e8c4cf;
+  border: 1px solid var(--plan-border);
   border-radius: 10px;
   padding: 12px;
-  background: #fff9fb;
+  background: var(--surface-soft);
 }
 
 .credentials {
   margin-top: 12px;
-  border-top: 1px dashed #e4becb;
+  border-top: 1px dashed var(--credentials-border);
   padding-top: 12px;
-  color: #4f3c45;
+  color: var(--credentials-color);
 }
 
 h2,
 h3,
 h4 {
   margin-top: 0;
-  color: #281c22;
+  color: var(--heading-color);
   line-height: 1.3;
 }
 
