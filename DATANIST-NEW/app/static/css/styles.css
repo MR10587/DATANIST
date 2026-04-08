@@ -279,6 +279,18 @@ textarea:focus {
   gap: 10px;
 }
 
+.section-filter {
+  width: 100%;
+  max-width: 340px;
+  margin: 8px 0 10px;
+}
+
+.section-filter.small {
+  width: auto;
+  min-width: 170px;
+  margin: 0;
+}
+
 .insights-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -417,6 +429,37 @@ textarea:focus {
 
 .leaderboard-meta strong {
   font-family: "Space Mono", Consolas, monospace;
+}
+
+.leaderboard-extra {
+  margin: 6px 0 0;
+  color: #f5b5c6;
+  font-size: 12px;
+}
+
+.leaderboard-trend {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  margin-top: 6px;
+}
+
+.leaderboard-trend.up {
+  background: rgba(83, 226, 137, 0.18);
+  color: #9effc0;
+}
+
+.leaderboard-trend.down {
+  background: rgba(255, 111, 134, 0.2);
+  color: #ffc3cf;
+}
+
+.leaderboard-trend.flat {
+  background: rgba(169, 179, 203, 0.2);
+  color: #d9e1fb;
 }
 
 .notification-item p {

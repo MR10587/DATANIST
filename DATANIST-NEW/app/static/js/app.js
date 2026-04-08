@@ -11,6 +11,20 @@ function byId(id) {
   return document.getElementById(id);
 }
 
+function bindRefreshInput(inputId, callback) {
+  const input = byId(inputId);
+  if (!input || input.dataset.bound) return;
+  input.dataset.bound = "true";
+  input.addEventListener("input", callback);
+}
+
+function bindRefreshChange(inputId, callback) {
+  const input = byId(inputId);
+  if (!input || input.dataset.bound) return;
+  input.dataset.bound = "true";
+  input.addEventListener("change", callback);
+}
+
 function escapeHtml(value) {
   return String(value || "")
     .replace(/&/g, "&amp;")
@@ -212,16 +226,25 @@ async function loadRoleNotifications(prefix) {
   if (!snapshot) return;
 
   const targetId = `${prefix}-notification-list`;
+  const query = String(byId(`${prefix}-notification-filter`)?.value || "").trim().toLowerCase();
   const target = byId(targetId);
   if (!target) return;
 
   target.innerHTML = "";
-  if (!snapshot.notifications.length) {
+  let notifications = snapshot.notifications;
+  if (query) {
+    notifications = notifications.filter((notification) => {
+      const haystack = `${notification.title || ""} ${notification.message || ""} ${notification.category || ""}`.toLowerCase();
+      return haystack.includes(query);
+    });
+  }
+
+  if (!notifications.length) {
     target.innerHTML = '<p class="muted">No notifications right now.</p>';
     return;
   }
 
-  snapshot.notifications.forEach((notification) => {
+  notifications.forEach((notification) => {
     const item = document.createElement("div");
     item.className = `notification-item ${notification.read ? "is-read" : "is-unread"}`;
     item.innerHTML = `
@@ -306,7 +329,10 @@ async function loadLeaderboard(targetId) {
   const target = byId(targetId);
   if (!target) return;
 
-  const response = await fetch("/api/leaderboard");
+  const prefix = String(targetId || "").replace(/-leaderboard-list$/, "");
+  const mode = byId(`${prefix}-leaderboard-mode`)?.value || "overall";
+
+  const response = await fetch(`/api/leaderboard?mode=${encodeURIComponent(mode)}`);
   const result = await response.json();
 
   target.innerHTML = "";
@@ -322,6 +348,11 @@ async function loadLeaderboard(targetId) {
   }
 
   leaderboard.forEach((entry) => {
+    const rankChange = Number(entry.rank_change || 0);
+    const changeLabel = rankChange > 0 ? `+${rankChange}` : `${rankChange}`;
+    const trendClass = rankChange > 0 ? "up" : rankChange < 0 ? "down" : "flat";
+    const improvement = Number(entry.improvement_percent || 0);
+
     const card = document.createElement("div");
     card.className = "leaderboard-item";
     card.innerHTML = `
@@ -329,10 +360,12 @@ async function loadLeaderboard(targetId) {
       <div>
         <h4>${escapeHtml(entry.name)}</h4>
         <p class="muted">${escapeHtml(entry.email || "-")}</p>
+        <p class="leaderboard-extra">Improvement: ${improvement.toFixed(2)}%</p>
       </div>
       <div class="leaderboard-meta">
         <strong>${Number(entry.average_percent || 0).toFixed(2)}%</strong>
         <span class="muted">${entry.submitted_exams || 0}/${entry.total_exams || 0} exams</span>
+        <span class="leaderboard-trend ${trendClass}">Rank change ${changeLabel}</span>
       </div>
     `;
     target.appendChild(card);
@@ -343,6 +376,9 @@ async function loadContacts(targetId) {
   const target = byId(targetId);
   if (!target) return;
 
+  const prefix = String(targetId || "").replace(/-contacts-list$/, "");
+  const query = String(byId(`${prefix}-contacts-filter`)?.value || "").trim().toLowerCase();
+
   const response = await fetch("/api/contacts");
   const result = await response.json();
 
@@ -352,9 +388,16 @@ async function loadContacts(targetId) {
     return;
   }
 
-  const contacts = Array.isArray(result.contacts) ? result.contacts : [];
+  let contacts = Array.isArray(result.contacts) ? result.contacts : [];
+  if (query) {
+    contacts = contacts.filter((contact) => {
+      const haystack = `${contact.name || ""} ${contact.email || ""} ${contact.phone || ""} ${contact.role || ""}`.toLowerCase();
+      return haystack.includes(query);
+    });
+  }
+
   if (!contacts.length) {
-    target.innerHTML = '<p class="muted">No contacts available.</p>';
+    target.innerHTML = `<p class="muted">${query ? "No contacts match your search." : "No contacts available."}</p>`;
     return;
   }
 
@@ -950,6 +993,10 @@ async function initStudentDashboard() {
   const profileForm = byId("student-profile-form");
   if (!examList) return;
 
+  bindRefreshInput("student-notification-filter", async () => loadRoleNotifications("student"));
+  bindRefreshInput("student-contacts-filter", async () => loadContacts("student-contacts-list"));
+  bindRefreshChange("student-leaderboard-mode", async () => loadLeaderboard("student-leaderboard-list"));
+
   if (checkInBtn && !checkInBtn.dataset.bound) {
     checkInBtn.dataset.bound = "true";
     checkInBtn.addEventListener("click", async () => {
@@ -1387,6 +1434,9 @@ async function initMentorDashboard() {
   if (!btn) return;
 
   let mentorStudents = await loadStaffStudents("mentor-students");
+  bindRefreshInput("mentor-notification-filter", async () => loadRoleNotifications("mentor"));
+  bindRefreshInput("mentor-contacts-filter", async () => loadContacts("mentor-contacts-list"));
+  bindRefreshChange("mentor-leaderboard-mode", async () => loadLeaderboard("mentor-leaderboard-list"));
 
   const form = byId("new-exam-form");
   const message = byId("mentor-exam-message");
@@ -1570,6 +1620,9 @@ async function initSsmDashboard() {
   if (!btn) return;
 
   let ssmStudents = await loadStaffStudents("ssm-students");
+  bindRefreshInput("ssm-notification-filter", async () => loadRoleNotifications("ssm"));
+  bindRefreshInput("ssm-contacts-filter", async () => loadContacts("ssm-contacts-list"));
+  bindRefreshChange("ssm-leaderboard-mode", async () => loadLeaderboard("ssm-leaderboard-list"));
 
   const form = byId("new-ssm-interview-form");
   const message = byId("ssm-interview-message");

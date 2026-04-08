@@ -79,7 +79,8 @@
           ],
           "correct_option": 1
         }
-      ]
+      ],
+      "requirements_updated_at": "2026-04-08T20:54:25.220852Z"
     },
     {
       "id": "exam-2",
@@ -490,6 +491,9 @@
       "interview-open-interview-2",
       "interview-interview-1-student-1",
       "attendance-goal-student-1-2026-04-06"
+    ],
+    "mentor-1": [
+      "staff-event-event-1"
     ]
   }
 }

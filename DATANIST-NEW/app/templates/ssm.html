@@ -25,6 +25,7 @@
 
     <section class="card dashboard-panel" id="ssm-notifications">
       <h3>Notifications</h3>
+      <input id="ssm-notification-filter" class="section-filter" type="search" placeholder="Search notifications..." />
       <div id="ssm-notification-list" class="stack"></div>
     </section>
 
@@ -34,7 +35,13 @@
     </section>
 
     <section class="card dashboard-panel" id="ssm-leaderboard">
-      <h3>Leaderboards</h3>
+      <div class="row between exam-page-header">
+        <h3>Leaderboards</h3>
+        <select id="ssm-leaderboard-mode" class="section-filter small">
+          <option value="overall">Overall ranking</option>
+          <option value="improvers">Top improvers</option>
+        </select>
+      </div>
       <p class="muted">Students ranked by average score across all exams.</p>
       <div id="ssm-leaderboard-list" class="stack"></div>
     </section>
@@ -42,6 +49,7 @@
     <section class="card dashboard-panel" id="ssm-contacts">
       <h3>Contacts</h3>
       <p class="muted">Student email and phone numbers.</p>
+      <input id="ssm-contacts-filter" class="section-filter" type="search" placeholder="Search contacts..." />
       <div id="ssm-contacts-list" class="stack"></div>
     </section>
 

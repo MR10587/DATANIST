@@ -34,6 +34,7 @@
 
     <section class="card dashboard-panel" id="student-notifications">
       <h3>Notifications</h3>
+      <input id="student-notification-filter" class="section-filter" type="search" placeholder="Search notifications..." />
       <div id="student-notification-list" class="stack"></div>
     </section>
 
@@ -43,7 +44,13 @@
     </section>
 
     <section class="card dashboard-panel" id="student-leaderboard">
-      <h3>Leaderboards</h3>
+      <div class="row between exam-page-header">
+        <h3>Leaderboards</h3>
+        <select id="student-leaderboard-mode" class="section-filter small">
+          <option value="overall">Overall ranking</option>
+          <option value="improvers">Top improvers</option>
+        </select>
+      </div>
       <p class="muted">Students ranked by average score across all exams.</p>
       <div id="student-leaderboard-list" class="stack"></div>
     </section>
@@ -51,11 +58,15 @@
     <section class="card dashboard-panel" id="student-contacts">
       <h3>Contacts</h3>
       <p class="muted">Mentor and SSM contact details.</p>
+      <input id="student-contacts-filter" class="section-filter" type="search" placeholder="Search contacts..." />
       <div id="student-contacts-list" class="stack"></div>
     </section>
 
     <section class="card dashboard-panel" id="student-attendance">
-      <h3>Campus Attendance</h3>
+      <div class="row between exam-page-header">
+        <h3>Campus Attendance</h3>
+        <a class="btn btn-secondary" href="{{ url_for('student_attendance_pdf') }}">Export Attendance PDF</a>
+      </div>
       <p class="muted">Weekly goal is minimum 15 hours on campus.</p>
 
       <div class="attendance-grid">
@@ -94,7 +105,10 @@
     </section>
 
     <section class="card dashboard-panel" id="student-analyses">
-      <h3>Exam Analyses</h3>
+      <div class="row between exam-page-header">
+        <h3>Exam Analyses</h3>
+        <a class="btn btn-secondary" href="{{ url_for('student_exam_results_pdf') }}">Export Exam PDF</a>
+      </div>
       <div id="analysis-list" class="stack"></div>
     </section>
 

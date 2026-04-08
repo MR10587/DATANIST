@@ -974,6 +974,93 @@ def build_student_schedule_ics(user: dict, data: dict) -> str:
     return "\r\n".join(lines)
 
 
+def _pdf_escape(text: str) -> str:
+    return str(text or "").replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
+
+def build_basic_pdf_bytes(title: str, lines: list[str]) -> bytes:
+    y_start = 790
+    y_step = 16
+    content_parts = ["BT /F1 16 Tf 72 810 Td (" + _pdf_escape(title) + ") Tj ET"]
+
+    y = y_start
+    for line in lines[:38]:
+        content_parts.append(f"BT /F1 11 Tf 72 {y} Td ({_pdf_escape(line)}) Tj ET")
+        y -= y_step
+
+    content_stream = "\n".join(content_parts).encode("latin-1", errors="replace")
+
+    objects = []
+    objects.append(b"1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n")
+    objects.append(b"2 0 obj\n<< /Type /Pages /Count 1 /Kids [3 0 R] >>\nendobj\n")
+    objects.append(b"3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>\nendobj\n")
+    objects.append(b"4 0 obj\n<< /Length " + str(len(content_stream)).encode("ascii") + b" >>\nstream\n" + content_stream + b"\nendstream\nendobj\n")
+    objects.append(b"5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n")
+
+    header = b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n"
+    body = b""
+    offsets = [0]
+
+    for obj in objects:
+        offsets.append(len(header) + len(body))
+        body += obj
+
+    xref_offset = len(header) + len(body)
+    xref_lines = [f"0 {len(objects) + 1}\n", "0000000000 65535 f \n"]
+    for offset in offsets[1:]:
+        xref_lines.append(f"{offset:010d} 00000 n \n")
+    xref_bytes = ("xref\n" + "".join(xref_lines)).encode("ascii")
+
+    trailer = f"trailer\n<< /Size {len(objects) + 1} /Root 1 0 R >>\nstartxref\n{xref_offset}\n%%EOF".encode("ascii")
+    return header + body + xref_bytes + trailer
+
+
+def build_student_exam_report_lines(user_id: str, data: dict) -> list[str]:
+    exams_by_id = {exam.get("id", ""): exam for exam in data.get("exams", [])}
+    student_scores = data.get("scores", {}).get(user_id, {})
+    if not student_scores:
+        return ["No exam submissions yet."]
+
+    rows = []
+    total_percent = 0.0
+    for exam_id, score_data in student_scores.items():
+        exam = exams_by_id.get(exam_id, {})
+        total = max(int(score_data.get("total", 0) or 0), 1)
+        score = max(int(score_data.get("score", 0) or 0), 0)
+        percent = (score / total) * 100.0
+        total_percent += percent
+        rows.append((score_data.get("submitted_at", ""), f"{exam.get('name', exam_id)}: {score}/{total} ({percent:.1f}%)"))
+
+    rows.sort(key=lambda item: item[0], reverse=True)
+    average = total_percent / len(rows)
+    lines = [f"Overall average: {average:.2f}%", f"Submitted exams: {len(rows)}", "---"]
+    lines.extend([line for _, line in rows])
+    return lines
+
+
+def build_student_attendance_report_lines(user_id: str, data: dict) -> list[str]:
+    attendance = serialize_student_attendance(user_id, data)
+    analytics = build_attendance_analytics(user_id, data)
+    lines = [
+        f"Weekly hours: {attendance.get('weekly_hours', 0):.1f}/{attendance.get('goal_hours', 15.0):.1f}",
+        f"Goal reached: {'Yes' if attendance.get('goal_reached') else 'No'}",
+        f"Total tracked hours: {analytics.get('total_hours', 0):.1f}",
+        f"Completed sessions: {analytics.get('completed_sessions', 0)}",
+        f"Current streak: {analytics.get('current_streak_days', 0)} day(s)",
+        "---",
+        "Recent monthly hours:",
+    ]
+
+    monthly = analytics.get("monthly_hours", [])
+    if monthly:
+        for item in monthly:
+            lines.append(f"{item.get('month', 'Unknown')}: {float(item.get('hours', 0)):.1f}h")
+    else:
+        lines.append("No month breakdown yet.")
+
+    return lines
+
+
 def build_students_leaderboard(data: dict) -> list[dict]:
     exams = data.get("exams", [])
     exam_count = len(exams)
@@ -987,6 +1074,7 @@ def build_students_leaderboard(data: dict) -> list[dict]:
         student_scores = scores.get(student.get("id", ""), {})
         submitted_exams = 0
         percent_total = 0.0
+        attempts = []
 
         for exam in exams:
             item = student_scores.get(exam.get("id", ""))
@@ -999,15 +1087,32 @@ def build_students_leaderboard(data: dict) -> list[dict]:
                 continue
 
             submitted_exams += 1
-            percent_total += (score / total) * 100.0
+            percent = (score / total) * 100.0
+            percent_total += percent
+            attempts.append(
+                {
+                    "exam_id": exam.get("id", ""),
+                    "percent": percent,
+                    "submitted_at": str(item.get("submitted_at", "")),
+                }
+            )
+
+        attempts.sort(key=lambda item: item.get("submitted_at", ""), reverse=True)
+        recent_attempts = attempts[:2]
+        recent_average = round(
+            (sum(item.get("percent", 0.0) for item in recent_attempts) / len(recent_attempts)), 2
+        ) if recent_attempts else 0.0
 
         average_percent = round((percent_total / exam_count), 2) if exam_count else 0.0
+        improvement_percent = round(recent_average - average_percent, 2)
         rows.append(
             {
                 "student_id": student.get("id"),
                 "name": student.get("name", "Unknown Student"),
                 "email": student.get("email", ""),
                 "average_percent": average_percent,
+                "recent_average": recent_average,
+                "improvement_percent": improvement_percent,
                 "submitted_exams": submitted_exams,
                 "total_exams": exam_count,
             }
@@ -1024,6 +1129,22 @@ def build_students_leaderboard(data: dict) -> list[dict]:
 
     for index, row in enumerate(rows, start=1):
         row["rank"] = index
+
+    previous_rows = sorted(
+        rows,
+        key=lambda item: (
+            item.get("recent_average", 0),
+            item.get("submitted_exams", 0),
+            item.get("name", ""),
+        ),
+        reverse=True,
+    )
+    previous_rank_by_student = {item.get("student_id"): idx for idx, item in enumerate(previous_rows, start=1)}
+
+    for row in rows:
+        previous_rank = previous_rank_by_student.get(row.get("student_id"), row.get("rank", 0))
+        row["previous_rank"] = previous_rank
+        row["rank_change"] = previous_rank - row.get("rank", 0)
 
     return rows
 
@@ -1825,7 +1946,53 @@ def get_leaderboard():
 
     data = load_data()
     leaderboard = build_students_leaderboard(data)
-    return jsonify({"ok": True, "leaderboard": leaderboard})
+    mode = str(request.args.get("mode", "overall")).strip().lower()
+
+    if mode == "improvers":
+        improvers = sorted(
+            leaderboard,
+            key=lambda item: (
+                item.get("improvement_percent", 0),
+                item.get("recent_average", 0),
+                item.get("submitted_exams", 0),
+            ),
+            reverse=True,
+        )
+        for index, item in enumerate(improvers, start=1):
+            item["rank"] = index
+        return jsonify({"ok": True, "mode": "improvers", "leaderboard": improvers})
+
+    return jsonify({"ok": True, "mode": "overall", "leaderboard": leaderboard})
+
+
+@app.get("/api/student/reports/exam-results/pdf")
+def student_exam_results_pdf():
+    user = require_role("student")
+    if not user:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    data = load_data()
+    lines = build_student_exam_report_lines(user["id"], data)
+    pdf_bytes = build_basic_pdf_bytes("Exam Results Report", lines)
+    return pdf_bytes, 200, {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": 'attachment; filename="exam-results-report.pdf"',
+    }
+
+
+@app.get("/api/student/reports/attendance/pdf")
+def student_attendance_pdf():
+    user = require_role("student")
+    if not user:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    data = load_data()
+    lines = build_student_attendance_report_lines(user["id"], data)
+    pdf_bytes = build_basic_pdf_bytes("Attendance Report", lines)
+    return pdf_bytes, 200, {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": 'attachment; filename="attendance-report.pdf"',
+    }
 
 
 if __name__ == "__main__":
