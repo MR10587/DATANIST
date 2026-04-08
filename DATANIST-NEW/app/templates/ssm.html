@@ -5,39 +5,39 @@
   <aside class="card section-sidebar">
     <h3>Navigate</h3>
     <nav class="sidebar-nav" aria-label="SSM dashboard sections">
-      <a href="#ssm-overview">Overview</a>
-      <a href="#ssm-notifications">Notifications</a>
-      <a href="#ssm-analytics">Analytics</a>
-      <a href="#ssm-review">Review Panel</a>
-      <a href="#ssm-interviews">Interview Section</a>
-      <a href="#ssm-calendar">Calendar</a>
-      <a href="#ssm-events">Event Section</a>
+      <a href="#ssm-overview" data-section-target="ssm-overview">Overview</a>
+      <a href="#ssm-notifications" data-section-target="ssm-notifications">Notifications</a>
+      <a href="#ssm-analytics" data-section-target="ssm-analytics">Analytics</a>
+      <a href="#ssm-review" data-section-target="ssm-review">Review Panel</a>
+      <a href="#ssm-interviews" data-section-target="ssm-interviews">Interview Section</a>
+      <a href="#ssm-calendar" data-section-target="ssm-calendar">Calendar</a>
+      <a href="#ssm-events" data-section-target="ssm-events">Event Section</a>
     </nav>
   </aside>
 
   <div class="dashboard-sections">
-    <section class="card" id="ssm-overview">
+    <section class="card dashboard-panel panel-active" id="ssm-overview">
       <h2>SSM Dashboard</h2>
       <p>This page is currently empty.</p>
     </section>
 
-    <section class="card" id="ssm-notifications">
+    <section class="card dashboard-panel" id="ssm-notifications">
       <h3>Notifications</h3>
       <div id="ssm-notification-list" class="stack"></div>
     </section>
 
-    <section class="card" id="ssm-analytics">
+    <section class="card dashboard-panel" id="ssm-analytics">
       <h3>Analytics</h3>
       <div id="ssm-analytics-list"></div>
     </section>
 
-    <section class="card" id="ssm-review">
+    <section class="card dashboard-panel" id="ssm-review">
       <h3>Review Panel</h3>
       <p class="muted">Click a student to expand profile, exam, and CV details.</p>
       <div id="ssm-students" class="stack"></div>
     </section>
 
-    <section class="card" id="ssm-interviews">
+    <section class="card dashboard-panel" id="ssm-interviews">
       <div class="row between">
         <h3>Interview Section</h3>
         <button id="new-ssm-interview-btn" class="btn">Create Interview</button>
@@ -60,7 +60,7 @@
       <div class="stack" id="ssm-interview-list"></div>
     </section>
 
-    <section class="card" id="ssm-calendar">
+    <section class="card dashboard-panel" id="ssm-calendar">
       <h3>Calendar</h3>
       <div class="calendar-toolbar">
         <label for="ssm-calendar-month-filter">Month view</label>
@@ -70,7 +70,7 @@
       <div id="ssm-calendar-list" class="stack"></div>
     </section>
 
-    <section class="card" id="ssm-events">
+    <section class="card dashboard-panel" id="ssm-events">
       <div class="row between">
         <h3>Event Section</h3>
         <button id="new-ssm-event-btn" class="btn">Create Event</button>

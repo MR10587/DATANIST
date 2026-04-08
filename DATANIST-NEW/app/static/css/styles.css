@@ -91,6 +91,14 @@ li {
   gap: 16px;
 }
 
+.dashboard-panel {
+  display: none;
+}
+
+.dashboard-panel.panel-active {
+  display: block;
+}
+
 .dashboard-sections section[id] {
   scroll-margin-top: 84px;
 }
@@ -128,6 +136,12 @@ li {
   border-color: var(--secondary-border);
   transform: translateX(2px);
   text-decoration: none;
+}
+
+.sidebar-nav a.active {
+  background: var(--brand-soft);
+  border-color: var(--brand);
+  color: var(--brand-strong);
 }
 
 .card {
@@ -292,6 +306,10 @@ textarea:focus {
   border-top: 1px dashed var(--credentials-border);
   padding-top: 12px;
 color: var(--credentials-color);
+}
+
+.login-autofill {
+  margin-top: 8px;
 }
 
 h2,

@@ -5,45 +5,45 @@
   <aside class="card section-sidebar">
     <h3>Navigate</h3>
     <nav class="sidebar-nav" aria-label="Student dashboard sections">
-      <a href="#student-overview">Overview</a>
-      <a href="#student-exams">Exams</a>
-      <a href="#student-notifications">Notifications</a>
-      <a href="#student-analytics">Analytics</a>
-      <a href="#student-analyses">Exam Analyses</a>
-      <a href="#student-profile">Profile</a>
-      <a href="#student-interviews">Interview Slots</a>
-      <a href="#student-events">Events</a>
-      <a href="#student-calendar">Calendar</a>
+      <a href="#student-overview" data-section-target="student-overview">Overview</a>
+      <a href="#student-exams" data-section-target="student-exams">Exams</a>
+      <a href="#student-notifications" data-section-target="student-notifications">Notifications</a>
+      <a href="#student-analytics" data-section-target="student-analytics">Analytics</a>
+      <a href="#student-analyses" data-section-target="student-analyses">Exam Analyses</a>
+      <a href="#student-profile" data-section-target="student-profile">Profile</a>
+      <a href="#student-interviews" data-section-target="student-interviews">Interview Slots</a>
+      <a href="#student-events" data-section-target="student-events">Events</a>
+      <a href="#student-calendar" data-section-target="student-calendar">Calendar</a>
     </nav>
   </aside>
 
   <div class="dashboard-sections">
-    <section class="card" id="student-overview">
+    <section class="card dashboard-panel panel-active" id="student-overview">
       <h2>Student Dashboard</h2>
       <p>Welcome, {{ user.name }}.</p>
     </section>
 
-    <section class="card" id="student-exams">
+    <section class="card dashboard-panel" id="student-exams">
       <h3>Exams</h3>
       <div id="exam-list" class="stack"></div>
     </section>
 
-    <section class="card" id="student-notifications">
+    <section class="card dashboard-panel" id="student-notifications">
       <h3>Notifications</h3>
       <div id="student-notification-list" class="stack"></div>
     </section>
 
-    <section class="card" id="student-analytics">
+    <section class="card dashboard-panel" id="student-analytics">
       <h3>Dashboard Analytics</h3>
       <div id="student-analytics-list"></div>
     </section>
 
-    <section class="card" id="student-analyses">
+    <section class="card dashboard-panel" id="student-analyses">
       <h3>Exam Analyses</h3>
       <div id="analysis-list" class="stack"></div>
     </section>
 
-    <section class="card" id="student-profile">
+    <section class="card dashboard-panel" id="student-profile">
       <h3>Profile</h3>
       <form id="student-profile-form" class="stack" enctype="multipart/form-data">
         <label>Upload CV (PDF, DOC, DOCX)</label>
@@ -67,17 +67,17 @@
       </form>
     </section>
 
-    <section class="card" id="student-interviews">
+    <section class="card dashboard-panel" id="student-interviews">
       <h3>Interview Slots</h3>
       <div id="student-interview-list" class="stack"></div>
     </section>
 
-    <section class="card" id="student-events">
+    <section class="card dashboard-panel" id="student-events">
       <h3>Events</h3>
       <div id="student-event-list" class="stack"></div>
     </section>
 
-    <section class="card" id="student-calendar">
+    <section class="card dashboard-panel" id="student-calendar">
       <h3>Calendar</h3>
       <div class="calendar-toolbar">
         <label for="student-calendar-month-filter">Month view</label>

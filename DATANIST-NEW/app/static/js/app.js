@@ -462,9 +462,83 @@ function renderCalendar(interviews, events, targetId, mode = "student") {
   });
 }
 
+function initDashboardPanels() {
+  const layouts = document.querySelectorAll(".dashboard-layout");
+
+  layouts.forEach((layout) => {
+    const links = Array.from(layout.querySelectorAll(".sidebar-nav a[data-section-target]"));
+    const panels = Array.from(layout.querySelectorAll(".dashboard-panel[id]"));
+    if (!links.length || !panels.length) return;
+
+    const panelIds = new Set(panels.map((panel) => panel.id));
+
+    function activatePanel(targetId) {
+      if (!panelIds.has(targetId)) return false;
+
+      panels.forEach((panel) => {
+        panel.classList.toggle("panel-active", panel.id === targetId);
+      });
+
+      links.forEach((link) => {
+        const isActive = link.dataset.sectionTarget === targetId;
+        link.classList.toggle("active", isActive);
+        if (isActive) {
+          link.setAttribute("aria-current", "page");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+
+      return true;
+    }
+
+    const hashTarget = String(window.location.hash || "").replace(/^#/, "");
+    const defaultTarget = links[0].dataset.sectionTarget;
+    const initialTarget = panelIds.has(hashTarget) ? hashTarget : defaultTarget;
+    activatePanel(initialTarget);
+
+    links.forEach((link) => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        const targetId = link.dataset.sectionTarget;
+        if (!activatePanel(targetId)) return;
+
+        if (window.history && typeof window.history.replaceState === "function") {
+          window.history.replaceState(null, "", `#${targetId}`);
+        } else {
+          window.location.hash = targetId;
+        }
+      });
+    });
+  });
+}
+
 async function initLogin() {
   const form = byId("login-form");
   if (!form) return;
+
+  const loginEmail = byId("login-email");
+  const loginPassword = byId("login-password");
+  const autofillBtn = byId("login-autofill-btn");
+  const autofillRole = byId("login-autofill-role");
+  const loginError = byId("login-error");
+
+  if (autofillBtn && autofillRole && loginEmail && loginPassword) {
+    const demoAccounts = {
+      mentor: { email: "mentor@holberton.az", password: "Mentor123!" },
+      student: { email: "student@holberton.az", password: "Student123!" },
+      ssm: { email: "ssm@holberton.az", password: "SSM123!" },
+    };
+
+    autofillBtn.addEventListener("click", () => {
+      const selected = demoAccounts[autofillRole.value] || demoAccounts.mentor;
+      loginEmail.value = selected.email;
+      loginPassword.value = selected.password;
+      if (loginError) {
+        loginError.textContent = "";
+      }
+    });
+  }
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -1301,6 +1375,7 @@ async function renderStaffInsights(prefix, students) {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
+  initDashboardPanels();
   await initLogin();
   await initStudentDashboard();
   await initMentorDashboard();

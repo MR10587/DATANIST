@@ -7,10 +7,20 @@
 
   <form id="login-form">
     <label>Email</label>
-    <input type="email" name="email" required />
+    <input id="login-email" type="email" name="email" required />
 
     <label>Password</label>
-    <input type="password" name="password" required />
+    <input id="login-password" type="password" name="password" required />
+
+    <div class="login-autofill stack">
+      <label for="login-autofill-role">Autofill Demo Account</label>
+      <select id="login-autofill-role">
+        <option value="mentor">Mentor</option>
+        <option value="student">Student</option>
+        <option value="ssm">SSM</option>
+      </select>
+      <button id="login-autofill-btn" class="btn btn-secondary" type="button">Autofill</button>
+    </div>
 
     <button class="btn" type="submit">Sign In</button>
     <p id="login-error" class="error"></p>

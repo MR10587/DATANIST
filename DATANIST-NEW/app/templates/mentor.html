@@ -5,34 +5,34 @@
   <aside class="card section-sidebar">
     <h3>Navigate</h3>
     <nav class="sidebar-nav" aria-label="Mentor dashboard sections">
-      <a href="#mentor-overview">Overview</a>
-      <a href="#mentor-notifications">Notifications</a>
-      <a href="#mentor-analytics">Analytics</a>
-      <a href="#mentor-exams">Exam Section</a>
-      <a href="#mentor-review">Review Panel</a>
-      <a href="#mentor-interviews">Interview Section</a>
-      <a href="#mentor-calendar">Calendar</a>
-      <a href="#mentor-events">Event Section</a>
+      <a href="#mentor-overview" data-section-target="mentor-overview">Overview</a>
+      <a href="#mentor-notifications" data-section-target="mentor-notifications">Notifications</a>
+      <a href="#mentor-analytics" data-section-target="mentor-analytics">Analytics</a>
+      <a href="#mentor-exams" data-section-target="mentor-exams">Exam Section</a>
+      <a href="#mentor-review" data-section-target="mentor-review">Review Panel</a>
+      <a href="#mentor-interviews" data-section-target="mentor-interviews">Interview Section</a>
+      <a href="#mentor-calendar" data-section-target="mentor-calendar">Calendar</a>
+      <a href="#mentor-events" data-section-target="mentor-events">Event Section</a>
     </nav>
   </aside>
 
   <div class="dashboard-sections">
-    <section class="card" id="mentor-overview">
+    <section class="card dashboard-panel panel-active" id="mentor-overview">
       <h2>Mentor Dashboard</h2>
       <p>Welcome, {{ user.name }}.</p>
     </section>
 
-    <section class="card" id="mentor-notifications">
+    <section class="card dashboard-panel" id="mentor-notifications">
       <h3>Notifications</h3>
       <div id="mentor-notification-list" class="stack"></div>
     </section>
 
-    <section class="card" id="mentor-analytics">
+    <section class="card dashboard-panel" id="mentor-analytics">
       <h3>Analytics</h3>
       <div id="mentor-analytics-list"></div>
     </section>
 
-    <section class="card" id="mentor-exams">
+    <section class="card dashboard-panel" id="mentor-exams">
       <div class="row between">
         <h3>Exam Section</h3>
         <button id="new-exam-btn" class="btn">Create New Exam</button>
@@ -55,13 +55,13 @@
       </form>
     </section>
 
-    <section class="card" id="mentor-review">
+    <section class="card dashboard-panel" id="mentor-review">
       <h3>Review Panel</h3>
       <p class="muted">Click a student to expand profile, exam, and CV details.</p>
       <div id="mentor-students" class="stack"></div>
     </section>
 
-    <section class="card" id="mentor-interviews">
+    <section class="card dashboard-panel" id="mentor-interviews">
       <div class="row between">
         <h3>Interview Section</h3>
         <button id="new-interview-btn" class="btn">Create Interview</button>
@@ -84,7 +84,7 @@
       <div class="stack" id="mentor-interview-list"></div>
     </section>
 
-    <section class="card" id="mentor-calendar">
+    <section class="card dashboard-panel" id="mentor-calendar">
       <h3>Calendar</h3>
       <div class="calendar-toolbar">
         <label for="mentor-calendar-month-filter">Month view</label>
@@ -94,7 +94,7 @@
       <div id="mentor-calendar-list" class="stack"></div>
     </section>
 
-    <section class="card" id="mentor-events">
+    <section class="card dashboard-panel" id="mentor-events">
       <div class="row between">
         <h3>Event Section</h3>
         <button id="new-event-btn" class="btn">Create Event</button>
