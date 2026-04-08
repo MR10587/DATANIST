@@ -364,6 +364,10 @@ textarea:focus {
   font-weight: 700;
 }
 
+.career-link {
+  font-weight: 700;
+}
+
 .credentials {
   margin-top: 12px;
   border-top: 1px dashed var(--credentials-border);

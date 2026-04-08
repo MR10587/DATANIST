@@ -235,6 +235,47 @@ async function loadStudentAttendance() {
   renderAttendance(result.attendance || {});
 }
 
+async function loadStudentCareerJobs() {
+  const target = byId("student-career-list");
+  if (!target) return;
+
+  const response = await fetch("/api/student/career-jobs");
+  const result = await response.json();
+  if (!result.ok) {
+    target.innerHTML = `<p class="muted">${escapeHtml(result.message || "Could not load career opportunities.")}</p>`;
+    return;
+  }
+
+  const jobs = Array.isArray(result.jobs) ? result.jobs : [];
+  target.innerHTML = "";
+
+  if (!jobs.length) {
+    target.innerHTML = '<p class="muted">No jobs available right now.</p>';
+    return;
+  }
+
+  jobs.forEach((job) => {
+    const card = document.createElement("div");
+    card.className = "exam-item";
+
+    const title = escapeHtml(job.title || "Unknown role");
+    const company = escapeHtml(job.company || "Unknown company");
+    const location = escapeHtml(job.location || "Location not specified");
+    const listedAt = escapeHtml(job.listed_at || "Recent");
+    const link = String(job.link || "").trim();
+
+    card.innerHTML = `
+      <h4>${title}</h4>
+      <p><strong>Company:</strong> ${company}</p>
+      <p><strong>Location:</strong> ${location}</p>
+      <p><strong>Posted:</strong> ${listedAt}</p>
+      ${link ? `<p><a class="career-link" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">Open job post</a></p>` : ""}
+    `;
+
+    target.appendChild(card);
+  });
+}
+
 function formatRequirementsText(value) {
   const text = String(value || "").trim();
   return text || "No requirements were added by the mentor for this exam yet.";
@@ -746,6 +787,7 @@ async function initStudentDashboard() {
   }
 
   await loadStudentAttendance();
+  await loadStudentCareerJobs();
 
   let profileSnapshot = null;
   if (profileForm) {

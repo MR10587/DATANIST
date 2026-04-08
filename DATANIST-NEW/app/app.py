@@ -33,6 +33,8 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "holberton-datanist-dev-secret")
 ATTENDANCE_WEEKLY_GOAL_HOURS = 15.0
+LINKEDIN_API_URL = "https://linkedin-job-search-api.p.rapidapi.com/active-jb-7d"
+LINKEDIN_API_HOST = "linkedin-job-search-api.p.rapidapi.com"
 
 
 def load_data() -> dict:
@@ -188,6 +190,178 @@ def serialize_student_attendance(student_id: str, data: dict) -> dict:
         "week_end": (week_end - timedelta(days=1)).strftime("%Y-%m-%d"),
         "week_sessions": sorted(week_sessions, key=lambda item: item.get("check_in_at", ""), reverse=True),
     }
+
+
+def _normalize_job_item(job: dict) -> dict:
+    title = (
+        job.get("title")
+        or job.get("job_title")
+        or job.get("position")
+        or job.get("name")
+        or "Unknown role"
+    )
+    company = (
+        job.get("company")
+        or job.get("company_name")
+        or job.get("organization")
+        or job.get("companyName")
+        or "Unknown company"
+    )
+    location = (
+        job.get("location")
+        or job.get("job_location")
+        or job.get("formatted_location")
+        or "Location not specified"
+    )
+    link = (
+        job.get("job_url")
+        or job.get("url")
+        or job.get("linkedin_url")
+        or job.get("link")
+        or ""
+    )
+    listed_at = (
+        job.get("date")
+        or job.get("listed_at")
+        or job.get("published_at")
+        or ""
+    )
+
+    return {
+        "title": str(title).strip(),
+        "company": str(company).strip(),
+        "location": str(location).strip(),
+        "link": str(link).strip(),
+        "listed_at": str(listed_at).strip(),
+        "description": str(job.get("description") or job.get("job_description") or "").strip(),
+    }
+
+
+def infer_student_job_preferences(student_id: str, data: dict) -> dict:
+    profile = get_student_profiles(data).get(student_id, {})
+    cv_keywords = [str(item).lower() for item in profile.get("cv_keywords", []) if str(item).strip()]
+    motivation = str(profile.get("motivation_letter", "")).lower()
+
+    exam_topics = []
+    student_scores = data.get("scores", {}).get(student_id, {})
+    exams_by_id = {exam.get("id"): exam for exam in data.get("exams", [])}
+    for exam_id in student_scores.keys():
+        exam = exams_by_id.get(exam_id, {})
+        topic = str(exam.get("topic", "")).strip().lower()
+        if topic:
+            exam_topics.append(topic)
+
+    combined_tokens = set(cv_keywords + exam_topics)
+    combined_text = " ".join(list(combined_tokens) + [motivation])
+
+    role_by_signal = [
+        ("data", "Data Engineer"),
+        ("python", "Python Developer"),
+        ("backend", "Backend Developer"),
+        ("flask", "Backend Developer"),
+        ("api", "Backend Developer"),
+        ("javascript", "Frontend Developer"),
+        ("react", "Frontend Developer"),
+        ("full stack", "Full Stack Developer"),
+        ("software", "Software Engineer"),
+        ("oop", "Software Engineer"),
+    ]
+
+    inferred_roles = []
+    for signal, role in role_by_signal:
+        if signal in combined_text and role not in inferred_roles:
+            inferred_roles.append(role)
+
+    if not inferred_roles:
+        inferred_roles = ["Software Engineer", "Backend Developer", "Data Engineer"]
+
+    return {
+        "title_filter": " OR ".join([f'"{role}"' for role in inferred_roles[:4]]),
+        "location_filter": "",
+        "keywords": list(combined_tokens),
+    }
+
+
+def score_job_match(job_item: dict, keywords: list[str]) -> int:
+    if not keywords:
+        return 0
+
+    title = str(job_item.get("title", "")).lower()
+    description = str(job_item.get("description", "")).lower()
+    haystack = f"{title} {description}"
+    score = 0
+
+    for keyword in keywords:
+        cleaned = str(keyword).strip().lower()
+        if not cleaned:
+            continue
+        if cleaned in title:
+            score += 3
+        elif cleaned in haystack:
+            score += 1
+
+    return score
+
+
+def fetch_linkedin_developer_jobs(
+    limit: int = 8,
+    title_filter: str = '"Data Engineer"',
+    location_filter: str = "",
+    keywords: list[str] | None = None,
+) -> tuple[list[dict], str | None]:
+    rapidapi_key = os.getenv("RAPIDAPI_KEY", "").strip()
+    if not rapidapi_key:
+        return [], "RAPIDAPI_KEY is not configured."
+
+    headers = {
+        "Content-Type": "application/json",
+        "x-rapidapi-host": LINKEDIN_API_HOST,
+        "x-rapidapi-key": rapidapi_key,
+    }
+    params = {
+        "limit": str(max(1, min(limit, 10))),
+        "offset": "0",
+        "title_filter": title_filter,
+        "description_type": "text",
+    }
+    if location_filter.strip():
+        params["location_filter"] = location_filter.strip()
+
+    try:
+        response = requests.get(LINKEDIN_API_URL, headers=headers, params=params, timeout=20)
+        response.raise_for_status()
+        payload = response.json()
+
+        if isinstance(payload, dict):
+            raw_items = payload.get("data") or payload.get("results") or payload.get("jobs") or []
+        elif isinstance(payload, list):
+            raw_items = payload
+        else:
+            raw_items = []
+
+        normalized = []
+        for item in raw_items:
+            if not isinstance(item, dict):
+                continue
+            normalized_item = _normalize_job_item(item)
+            role = normalized_item["title"].lower()
+            if any(keyword in role for keyword in ("developer", "engineer", "software", "backend", "frontend", "full stack", "data")):
+                normalized.append(normalized_item)
+
+        if normalized:
+            scored = []
+            for item in normalized:
+                item_score = score_job_match(item, keywords or [])
+                scored.append((item_score, item))
+
+            scored.sort(key=lambda pair: pair[0], reverse=True)
+            ranked = [item for _, item in scored]
+            for item in ranked:
+                item.pop("description", None)
+            return ranked[:limit], None
+        return [], "No suitable jobs found in the last 7 days."
+    except Exception as exc:
+        return [], f"LinkedIn API request failed: {str(exc)}"
 
 
 def derive_weak_topics(wrong_questions: list[str]) -> list[str]:
@@ -758,6 +932,25 @@ def get_student_profile():
 
     data = load_data()
     return jsonify({"ok": True, "profile": serialize_student_profile(user["id"], data)})
+
+
+@app.get("/api/student/career-jobs")
+def get_student_career_jobs():
+    user = require_role("student")
+    if not user:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    data = load_data()
+    preferences = infer_student_job_preferences(user["id"], data)
+    jobs, error_message = fetch_linkedin_developer_jobs(
+        limit=8,
+        title_filter=preferences["title_filter"],
+        location_filter=preferences["location_filter"],
+        keywords=preferences["keywords"],
+    )
+    if error_message:
+        return jsonify({"ok": False, "message": error_message, "jobs": jobs}), 502
+    return jsonify({"ok": True, "jobs": jobs})
 
 
 @app.get("/api/student/attendance")
