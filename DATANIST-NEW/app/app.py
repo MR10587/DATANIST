@@ -682,6 +682,60 @@ def serialize_student_profile(student_id: str, data: dict) -> dict:
     }
 
 
+def build_students_leaderboard(data: dict) -> list[dict]:
+    exams = data.get("exams", [])
+    exam_count = len(exams)
+    users = data.get("users", [])
+    scores = data.get("scores", {})
+
+    students = [user for user in users if user.get("role") == "student"]
+    rows = []
+
+    for student in students:
+        student_scores = scores.get(student.get("id", ""), {})
+        submitted_exams = 0
+        percent_total = 0.0
+
+        for exam in exams:
+            item = student_scores.get(exam.get("id", ""))
+            if not item:
+                continue
+
+            total = max(int(item.get("total", 0) or 0), 0)
+            score = max(int(item.get("score", 0) or 0), 0)
+            if total <= 0:
+                continue
+
+            submitted_exams += 1
+            percent_total += (score / total) * 100.0
+
+        average_percent = round((percent_total / exam_count), 2) if exam_count else 0.0
+        rows.append(
+            {
+                "student_id": student.get("id"),
+                "name": student.get("name", "Unknown Student"),
+                "email": student.get("email", ""),
+                "average_percent": average_percent,
+                "submitted_exams": submitted_exams,
+                "total_exams": exam_count,
+            }
+        )
+
+    rows.sort(
+        key=lambda item: (
+            item.get("average_percent", 0),
+            item.get("submitted_exams", 0),
+            item.get("name", ""),
+        ),
+        reverse=True,
+    )
+
+    for index, row in enumerate(rows, start=1):
+        row["rank"] = index
+
+    return rows
+
+
 @app.route("/")
 def root():
     if get_current_user():
@@ -1363,6 +1417,17 @@ def mentor_students():
         )
 
     return jsonify({"ok": True, "students": result})
+
+
+@app.get("/api/leaderboard")
+def get_leaderboard():
+    user = require_role("student", "mentor", "ssm")
+    if not user:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    data = load_data()
+    leaderboard = build_students_leaderboard(data)
+    return jsonify({"ok": True, "leaderboard": leaderboard})
 
 
 if __name__ == "__main__":

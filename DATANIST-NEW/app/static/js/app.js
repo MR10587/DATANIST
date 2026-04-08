@@ -170,6 +170,43 @@ function renderNotificationList(targetId, notifications) {
   });
 }
 
+async function loadLeaderboard(targetId) {
+  const target = byId(targetId);
+  if (!target) return;
+
+  const response = await fetch("/api/leaderboard");
+  const result = await response.json();
+
+  target.innerHTML = "";
+  if (!result.ok) {
+    target.innerHTML = `<p class="muted">${escapeHtml(result.message || "Could not load leaderboard.")}</p>`;
+    return;
+  }
+
+  const leaderboard = Array.isArray(result.leaderboard) ? result.leaderboard : [];
+  if (!leaderboard.length) {
+    target.innerHTML = '<p class="muted">No ranking data available yet.</p>';
+    return;
+  }
+
+  leaderboard.forEach((entry) => {
+    const card = document.createElement("div");
+    card.className = "leaderboard-item";
+    card.innerHTML = `
+      <p class="leaderboard-rank">#${entry.rank}</p>
+      <div>
+        <h4>${escapeHtml(entry.name)}</h4>
+        <p class="muted">${escapeHtml(entry.email || "-")}</p>
+      </div>
+      <div class="leaderboard-meta">
+        <strong>${Number(entry.average_percent || 0).toFixed(2)}%</strong>
+        <span class="muted">${entry.submitted_exams || 0}/${entry.total_exams || 0} exams</span>
+      </div>
+    `;
+    target.appendChild(card);
+  });
+}
+
 function renderAttendance(attendance) {
   const ring = byId("attendance-progress-ring");
   if (!ring) return;
@@ -1016,6 +1053,7 @@ async function initStudentDashboard() {
   ]);
 
   renderCalendar(interviewItems, eventItems, "student-calendar-list", "student");
+  await loadLeaderboard("student-leaderboard-list");
 }
 
 async function openExamForStudent(examId) {
@@ -1336,6 +1374,8 @@ async function initMentorDashboard() {
     await loadMentorEvents();
   }
 
+  await loadLeaderboard("mentor-leaderboard-list");
+
   await renderMentorExamRequirements();
 }
 
@@ -1469,6 +1509,8 @@ async function initSsmDashboard() {
 
     await loadSsmEvents();
   }
+
+  await loadLeaderboard("ssm-leaderboard-list");
 }
 
 async function loadStaffStudents(targetId = "mentor-students") {

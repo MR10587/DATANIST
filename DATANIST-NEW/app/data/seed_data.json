@@ -15,6 +15,27 @@
       "password": "Student123!"
     },
     {
+      "id": "student-2",
+      "name": "Aysel Karimova",
+      "role": "student",
+      "email": "aysel@holberton.az",
+      "password": "Student123!"
+    },
+    {
+      "id": "student-3",
+      "name": "Murad Aliyev",
+      "role": "student",
+      "email": "murad@holberton.az",
+      "password": "Student123!"
+    },
+    {
+      "id": "student-4",
+      "name": "Nigar Mammadli",
+      "role": "student",
+      "email": "nigar@holberton.az",
+      "password": "Student123!"
+    },
+    {
       "id": "ssm-1",
       "name": "SSM User",
       "role": "ssm",
@@ -206,6 +227,27 @@
       "cv_keywords": [],
       "cv_excerpt": "",
       "updated_at": "2026-04-08T15:53:46.783277Z"
+    },
+    "student-2": {
+      "motivation_letter": "I want to become a backend engineer and improve my API design skills.",
+      "cv_filename": null,
+      "cv_keywords": [],
+      "cv_excerpt": "",
+      "updated_at": "2026-04-08T20:03:10.000000Z"
+    },
+    "student-3": {
+      "motivation_letter": "My target is full stack development with strong problem-solving fundamentals.",
+      "cv_filename": null,
+      "cv_keywords": [],
+      "cv_excerpt": "",
+      "updated_at": "2026-04-08T20:04:22.000000Z"
+    },
+    "student-4": {
+      "motivation_letter": "I am focused on Python and SQL to build reliable data products.",
+      "cv_filename": null,
+      "cv_keywords": [],
+      "cv_excerpt": "",
+      "updated_at": "2026-04-08T20:05:31.000000Z"
     }
   },
   "attendance_logs": {
@@ -259,6 +301,160 @@
         "weak_topics": [],
         "learning_plan": "Congratulations! You got a perfect score. Keep practicing to maintain your level.",
         "submitted_at": "2026-04-08T19:44:13.199658Z"
+      }
+    },
+    "student-2": {
+      "exam-1": {
+        "score": 2,
+        "total": 2,
+        "wrong_questions": [],
+        "weak_topics": [],
+        "learning_plan": "Good result. Keep strengthening Python routing and decorators.",
+        "submitted_at": "2026-04-08T20:06:22.100000Z"
+      },
+      "exam-2": {
+        "score": 1,
+        "total": 2,
+        "wrong_questions": [
+          "How old is Yalcin?"
+        ],
+        "weak_topics": [
+          "DOM event handling"
+        ],
+        "learning_plan": "Review DOM events and practice with small interactive UI tasks.",
+        "submitted_at": "2026-04-08T20:07:12.100000Z"
+      },
+      "exam-3": {
+        "score": 2,
+        "total": 2,
+        "wrong_questions": [],
+        "weak_topics": [],
+        "learning_plan": "Strong OOP understanding. Continue with inheritance practice.",
+        "submitted_at": "2026-04-08T20:08:02.100000Z"
+      },
+      "exam-4": {
+        "score": 1,
+        "total": 2,
+        "wrong_questions": [
+          "Flaskda nece route qurulur"
+        ],
+        "weak_topics": [
+          "Flask route decorators"
+        ],
+        "learning_plan": "Practice writing basic Flask routes daily for one week.",
+        "submitted_at": "2026-04-08T20:08:52.100000Z"
+      },
+      "exam-5": {
+        "score": 1,
+        "total": 1,
+        "wrong_questions": [],
+        "weak_topics": [],
+        "learning_plan": "Solid SQL basics. Move to joins and grouping exercises.",
+        "submitted_at": "2026-04-08T20:09:42.100000Z"
+      }
+    },
+    "student-3": {
+      "exam-1": {
+        "score": 1,
+        "total": 2,
+        "wrong_questions": [
+          "Which decorator is used to define a route in Flask?"
+        ],
+        "weak_topics": [
+          "Flask decorators"
+        ],
+        "learning_plan": "Repeat Flask decorator syntax and solve route mapping drills.",
+        "submitted_at": "2026-04-08T20:10:22.100000Z"
+      },
+      "exam-2": {
+        "score": 1,
+        "total": 2,
+        "wrong_questions": [
+          "How many grams of protein are in one walnut?"
+        ],
+        "weak_topics": [
+          "DOM fundamentals"
+        ],
+        "learning_plan": "Review DOM selection and manipulation by building mini tasks.",
+        "submitted_at": "2026-04-08T20:11:12.100000Z"
+      },
+      "exam-3": {
+        "score": 2,
+        "total": 2,
+        "wrong_questions": [],
+        "weak_topics": [],
+        "learning_plan": "Great OOP score. Continue class design practice.",
+        "submitted_at": "2026-04-08T20:12:02.100000Z"
+      },
+      "exam-4": {
+        "score": 1,
+        "total": 2,
+        "wrong_questions": [
+          "What is correct way to represent html pages in flask"
+        ],
+        "weak_topics": [
+          "Template rendering"
+        ],
+        "learning_plan": "Practice render_template and basic page routing flow.",
+        "submitted_at": "2026-04-08T20:12:52.100000Z"
+      },
+      "exam-5": {
+        "score": 0,
+        "total": 1,
+        "wrong_questions": [
+          "SQL-da nece  select islenir"
+        ],
+        "weak_topics": [
+          "SQL SELECT syntax"
+        ],
+        "learning_plan": "Study SQL SELECT structure and execute 20 example queries.",
+        "submitted_at": "2026-04-08T20:13:42.100000Z"
+      }
+    },
+    "student-4": {
+      "exam-1": {
+        "score": 2,
+        "total": 2,
+        "wrong_questions": [],
+        "weak_topics": [],
+        "learning_plan": "Excellent. Keep your Python fundamentals consistent.",
+        "submitted_at": "2026-04-08T20:14:22.100000Z"
+      },
+      "exam-2": {
+        "score": 2,
+        "total": 2,
+        "wrong_questions": [],
+        "weak_topics": [],
+        "learning_plan": "Strong DOM score. Proceed to larger frontend exercises.",
+        "submitted_at": "2026-04-08T20:15:12.100000Z"
+      },
+      "exam-3": {
+        "score": 1,
+        "total": 2,
+        "wrong_questions": [
+          "What is a class?"
+        ],
+        "weak_topics": [
+          "OOP concepts"
+        ],
+        "learning_plan": "Review core OOP terms and write two class examples daily.",
+        "submitted_at": "2026-04-08T20:16:02.100000Z"
+      },
+      "exam-4": {
+        "score": 2,
+        "total": 2,
+        "wrong_questions": [],
+        "weak_topics": [],
+        "learning_plan": "Very good Flask routing score. Keep practicing advanced route patterns.",
+        "submitted_at": "2026-04-08T20:16:52.100000Z"
+      },
+      "exam-5": {
+        "score": 1,
+        "total": 1,
+        "wrong_questions": [],
+        "weak_topics": [],
+        "learning_plan": "Great SQL basics. Continue with joins and subqueries.",
+        "submitted_at": "2026-04-08T20:17:42.100000Z"
       }
     }
   }

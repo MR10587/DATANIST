@@ -8,6 +8,7 @@
       <a href="#mentor-overview" data-section-target="mentor-overview">Overview</a>
       <a href="#mentor-notifications" data-section-target="mentor-notifications">Notifications</a>
       <a href="#mentor-analytics" data-section-target="mentor-analytics">Analytics</a>
+      <a href="#mentor-leaderboard" data-section-target="mentor-leaderboard">Leaderboards</a>
       <a href="#mentor-exams" data-section-target="mentor-exams">Exam Section</a>
       <a href="#mentor-review" data-section-target="mentor-review">Review Panel</a>
       <a href="#mentor-interviews" data-section-target="mentor-interviews">Interview Section</a>
@@ -19,7 +20,7 @@
   <div class="dashboard-sections">
     <section class="card dashboard-panel panel-active" id="mentor-overview">
       <h2>Mentor Dashboard</h2>
-      <p>Welcome, {{ user.name }}.</p>
+      <p>Welcome, Mentor.</p>
     </section>
 
     <section class="card dashboard-panel" id="mentor-notifications">
@@ -30,6 +31,12 @@
     <section class="card dashboard-panel" id="mentor-analytics">
       <h3>Analytics</h3>
       <div id="mentor-analytics-list"></div>
+    </section>
+
+    <section class="card dashboard-panel" id="mentor-leaderboard">
+      <h3>Leaderboards</h3>
+      <p class="muted">Students ranked by average score across all exams.</p>
+      <div id="mentor-leaderboard-list" class="stack"></div>
     </section>
 
     <section class="card dashboard-panel" id="mentor-exams">

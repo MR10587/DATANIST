@@ -309,6 +309,42 @@ textarea:focus {
   line-height: 1.45;
 }
 
+.leaderboard-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(13, 19, 35, 0.92);
+}
+
+.leaderboard-rank {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffd4df;
+}
+
+.leaderboard-item h4 {
+  margin: 0;
+}
+
+.leaderboard-item .muted {
+  margin: 2px 0 0;
+}
+
+.leaderboard-meta {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+
+.leaderboard-meta strong {
+  font-family: "Space Mono", Consolas, monospace;
+}
+
 .notification-item p {
   margin: 5px 0 0;
 }
