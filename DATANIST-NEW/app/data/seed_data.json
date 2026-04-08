@@ -210,6 +210,19 @@
       "bookings": {
         "student-1": "15:00"
       }
+    },
+    {
+      "id": "interview-2",
+      "title": "Frontend",
+      "date": "2026-04-10",
+      "created_by": "mentor-1",
+      "created_by_role": "mentor",
+      "time_options": [
+        "12:00",
+        "15:00",
+        "18:00"
+      ],
+      "bookings": {}
     }
   ],
   "events": [

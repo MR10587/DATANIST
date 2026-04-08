@@ -95,6 +95,11 @@ function isUpcomingDate(value, maxDays = 7) {
   return diff !== null && diff >= 0 && diff <= maxDays;
 }
 
+function isTodayOrFutureDate(value) {
+  const diff = daysUntilDate(value);
+  return diff !== null && diff >= 0;
+}
+
 function formatMonthLabel(monthKey) {
   if (!monthKey) return "Unknown month";
 
@@ -1044,12 +1049,23 @@ async function initStudentDashboard() {
   }
 
   const bookedInterviews = interviewItems.filter((interview) => interview.booked_by_me);
-  bookedInterviews.filter((interview) => isUpcomingDate(interview.date, 7)).forEach((interview) => {
+  bookedInterviews.filter((interview) => isTodayOrFutureDate(interview.date)).forEach((interview) => {
     notifications.push({
       title: "Upcoming interview",
       message: `${interview.title} is scheduled for ${formatDateDisplay(interview.date)} at ${interview.my_booking_time || "TBA"}.`,
     });
   });
+
+  const availableInterviews = interviewItems.filter(
+    (interview) => !interview.booked_by_me && (interview.available_time_options || []).length && isTodayOrFutureDate(interview.date)
+  );
+  if (availableInterviews.length) {
+    const nearest = [...availableInterviews].sort((a, b) => String(a.date).localeCompare(String(b.date)))[0];
+    notifications.push({
+      title: "New interview slots",
+      message: `${availableInterviews.length} interview slot(s) available. Next: ${nearest.title} on ${formatDateDisplay(nearest.date)}.`,
+    });
+  }
 
   const joinedEvents = eventItems.filter((event) => event.my_decision === "join");
   joinedEvents.filter((event) => isUpcomingDate(event.date, 7)).forEach((event) => {
@@ -1631,7 +1647,7 @@ async function renderStaffInsights(prefix, students) {
   const events = eventData.ok ? eventData.events : [];
   const notifications = [];
 
-  interviews.filter((interview) => isUpcomingDate(interview.date, 7)).forEach((interview) => {
+  interviews.filter((interview) => isTodayOrFutureDate(interview.date)).forEach((interview) => {
     notifications.push({
       title: "Interview reminder",
       message: `${interview.title} is scheduled for ${formatDateDisplay(interview.date)} with ${interview.booking_count || 0}/${interview.capacity || 0} booked slots.`,
