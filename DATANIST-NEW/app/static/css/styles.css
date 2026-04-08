@@ -314,6 +314,56 @@ textarea:focus {
   min-height: 110px;
 }
 
+.attendance-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
+  align-items: start;
+}
+
+.attendance-progress-wrap {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.attendance-progress-ring {
+  --attendance-progress: 0%;
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  background: conic-gradient(var(--brand) var(--attendance-progress), #f2dbe2 0);
+  display: grid;
+  place-items: center;
+}
+
+.attendance-progress-inner {
+  width: 138px;
+  height: 138px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 8px;
+}
+
+.attendance-progress-inner strong {
+  font-size: 26px;
+  color: var(--brand-strong);
+}
+
+.attendance-progress-inner span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.attendance-success {
+  color: #138245;
+  font-weight: 700;
+}
+
 .credentials {
   margin-top: 12px;
   border-top: 1px dashed var(--credentials-border);
@@ -380,5 +430,9 @@ a:hover {
 
   .sidebar-nav {
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+
+  .attendance-grid {
+    grid-template-columns: 1fr;
   }
 }

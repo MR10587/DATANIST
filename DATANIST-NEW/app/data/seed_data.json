@@ -157,6 +157,16 @@
       "updated_at": "2026-04-08T15:53:46.783277Z"
     }
   },
+  "attendance_logs": {
+    "student-1": [
+      {
+        "id": "attendance-1",
+        "check_in_at": "2026-04-08T22:59:00",
+        "check_out_at": "2026-04-09T22:00:00",
+        "duration_hours": 23.02
+      }
+    ]
+  },
   "scores": {
     "student-1": {
       "exam-1": {

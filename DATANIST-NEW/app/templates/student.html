@@ -9,6 +9,7 @@
       <a href="#student-exams" data-section-target="student-exams">Exams</a>
       <a href="#student-notifications" data-section-target="student-notifications">Notifications</a>
       <a href="#student-analytics" data-section-target="student-analytics">Analytics</a>
+      <a href="#student-attendance" data-section-target="student-attendance">Campus Attendance</a>
       <a href="#student-analyses" data-section-target="student-analyses">Exam Analyses</a>
       <a href="#student-profile" data-section-target="student-profile">Profile</a>
       <a href="#student-interviews" data-section-target="student-interviews">Interview Slots</a>
@@ -36,6 +37,38 @@
     <section class="card dashboard-panel" id="student-analytics">
       <h3>Dashboard Analytics</h3>
       <div id="student-analytics-list"></div>
+    </section>
+
+    <section class="card dashboard-panel" id="student-attendance">
+      <h3>Campus Attendance</h3>
+      <p class="muted">Weekly goal is minimum 15 hours on campus.</p>
+
+      <div class="attendance-grid">
+        <div class="attendance-progress-wrap">
+          <div id="attendance-progress-ring" class="attendance-progress-ring" style="--attendance-progress: 0%;">
+            <div class="attendance-progress-inner">
+              <strong id="attendance-weekly-hours-value">0.0h</strong>
+              <span>this week</span>
+            </div>
+          </div>
+          <p id="attendance-weekly-summary" class="muted">0.0 / 15.0 hours</p>
+          <p id="attendance-success-message" class="attendance-success hidden">Goal reached ✓</p>
+        </div>
+
+        <div class="stack">
+          <label>Check-in Time</label>
+          <input id="attendance-checkin-at" type="datetime-local" />
+          <button id="attendance-checkin-btn" type="button" class="btn">Save Check-in</button>
+
+          <label>Check-out Time</label>
+          <input id="attendance-checkout-at" type="datetime-local" />
+          <button id="attendance-checkout-btn" type="button" class="btn btn-secondary">Save Check-out</button>
+
+          <p id="attendance-status" class="muted"></p>
+        </div>
+      </div>
+
+      <div class="stack" id="attendance-week-sessions"></div>
     </section>
 
     <section class="card dashboard-panel" id="student-analyses">

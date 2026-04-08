@@ -2,7 +2,7 @@ import json
 import os
 import re
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import requests
@@ -32,6 +32,7 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "holberton-datanist-dev-secret")
+ATTENDANCE_WEEKLY_GOAL_HOURS = 15.0
 
 
 def load_data() -> dict:
@@ -94,6 +95,99 @@ def is_within_next_days(date_value: str, days: int = 7) -> bool:
     today = datetime.utcnow().date()
     delta_days = (parsed_date - today).days
     return 0 <= delta_days <= days
+
+
+def parse_datetime_input(value: str):
+    raw = str(value or "").strip()
+    if not raw:
+        return None
+
+    for fmt in ("%Y-%m-%dT%H:%M", "%Y-%m-%d %H:%M", "%d.%m.%Y %H:%M"):
+        try:
+            return datetime.strptime(raw, fmt)
+        except ValueError:
+            continue
+
+    try:
+        return datetime.fromisoformat(raw.replace("Z", "+00:00")).replace(tzinfo=None)
+    except ValueError:
+        return None
+
+
+def get_week_bounds(reference: datetime):
+    start = reference.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=reference.weekday())
+    end = start + timedelta(days=7)
+    return start, end
+
+
+def compute_overlap_hours(start_dt: datetime, end_dt: datetime, week_start: datetime, week_end: datetime) -> float:
+    overlap_start = max(start_dt, week_start)
+    overlap_end = min(end_dt, week_end)
+    if overlap_end <= overlap_start:
+        return 0.0
+    return (overlap_end - overlap_start).total_seconds() / 3600.0
+
+
+def get_attendance_logs(data: dict) -> dict:
+    return data.setdefault("attendance_logs", {})
+
+
+def serialize_student_attendance(student_id: str, data: dict) -> dict:
+    logs = get_attendance_logs(data).setdefault(student_id, [])
+    now = datetime.utcnow()
+    week_start, week_end = get_week_bounds(now)
+
+    weekly_hours = 0.0
+    active_session = None
+    week_sessions = []
+
+    for entry in logs:
+        check_in = parse_datetime_input(entry.get("check_in_at", ""))
+        if not check_in:
+            continue
+
+        check_out = parse_datetime_input(entry.get("check_out_at", ""))
+        is_open = check_out is None
+        effective_end = check_out or now
+
+        if effective_end <= check_in:
+            continue
+
+        overlap_hours = compute_overlap_hours(check_in, effective_end, week_start, week_end)
+        weekly_hours += overlap_hours
+
+        if overlap_hours > 0:
+            week_sessions.append(
+                {
+                    "id": entry.get("id"),
+                    "check_in_at": entry.get("check_in_at", ""),
+                    "check_out_at": entry.get("check_out_at", ""),
+                    "duration_hours": round((effective_end - check_in).total_seconds() / 3600.0, 2),
+                    "is_open": is_open,
+                }
+            )
+
+        if is_open and not active_session:
+            active_session = {
+                "id": entry.get("id"),
+                "check_in_at": entry.get("check_in_at", ""),
+                "duration_hours": round((now - check_in).total_seconds() / 3600.0, 2),
+            }
+
+    weekly_hours = round(weekly_hours, 2)
+    progress_percent = round(min((weekly_hours / ATTENDANCE_WEEKLY_GOAL_HOURS) * 100.0, 100.0), 1)
+    goal_reached = weekly_hours >= ATTENDANCE_WEEKLY_GOAL_HOURS
+
+    return {
+        "goal_hours": ATTENDANCE_WEEKLY_GOAL_HOURS,
+        "weekly_hours": weekly_hours,
+        "progress_percent": progress_percent,
+        "goal_reached": goal_reached,
+        "active_session": active_session,
+        "week_start": week_start.strftime("%Y-%m-%d"),
+        "week_end": (week_end - timedelta(days=1)).strftime("%Y-%m-%d"),
+        "week_sessions": sorted(week_sessions, key=lambda item: item.get("check_in_at", ""), reverse=True),
+    }
 
 
 def derive_weak_topics(wrong_questions: list[str]) -> list[str]:
@@ -664,6 +758,78 @@ def get_student_profile():
 
     data = load_data()
     return jsonify({"ok": True, "profile": serialize_student_profile(user["id"], data)})
+
+
+@app.get("/api/student/attendance")
+def get_student_attendance():
+    user = require_role("student")
+    if not user:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    data = load_data()
+    attendance = serialize_student_attendance(user["id"], data)
+    return jsonify({"ok": True, "attendance": attendance})
+
+
+@app.post("/api/student/attendance/checkin")
+def student_attendance_checkin():
+    user = require_role("student")
+    if not user:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    payload = request.get_json(silent=True) or {}
+    requested_check_in = parse_datetime_input(payload.get("check_in_at", "")) or datetime.utcnow()
+
+    data = load_data()
+    logs = get_attendance_logs(data).setdefault(user["id"], [])
+
+    active = next((entry for entry in logs if not entry.get("check_out_at")), None)
+    if active:
+        return jsonify({"ok": False, "message": "You already have an active campus session."}), 409
+
+    entry_id = f"attendance-{len(logs) + 1}"
+    logs.append(
+        {
+            "id": entry_id,
+            "check_in_at": requested_check_in.strftime("%Y-%m-%dT%H:%M:%S"),
+            "check_out_at": "",
+        }
+    )
+    save_data(data)
+
+    attendance = serialize_student_attendance(user["id"], data)
+    return jsonify({"ok": True, "message": "Check-in saved.", "attendance": attendance})
+
+
+@app.post("/api/student/attendance/checkout")
+def student_attendance_checkout():
+    user = require_role("student")
+    if not user:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    payload = request.get_json(silent=True) or {}
+    requested_check_out = parse_datetime_input(payload.get("check_out_at", "")) or datetime.utcnow()
+
+    data = load_data()
+    logs = get_attendance_logs(data).setdefault(user["id"], [])
+    active = next((entry for entry in reversed(logs) if not entry.get("check_out_at")), None)
+
+    if not active:
+        return jsonify({"ok": False, "message": "No active check-in found."}), 404
+
+    check_in = parse_datetime_input(active.get("check_in_at", ""))
+    if not check_in:
+        return jsonify({"ok": False, "message": "Active session has an invalid check-in time."}), 400
+
+    if requested_check_out <= check_in:
+        return jsonify({"ok": False, "message": "Check-out time must be after check-in time."}), 400
+
+    active["check_out_at"] = requested_check_out.strftime("%Y-%m-%dT%H:%M:%S")
+    active["duration_hours"] = round((requested_check_out - check_in).total_seconds() / 3600.0, 2)
+    save_data(data)
+
+    attendance = serialize_student_attendance(user["id"], data)
+    return jsonify({"ok": True, "message": "Check-out saved.", "attendance": attendance})
 
 
 @app.post("/api/student/profile")

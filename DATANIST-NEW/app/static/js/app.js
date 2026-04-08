@@ -47,6 +47,30 @@ function formatDateDisplay(value) {
   return `${dd}.${mm}.${yyyy}`;
 }
 
+function formatDateTimeDisplay(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
+
+  const dd = String(date.getDate()).padStart(2, "0");
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const yyyy = date.getFullYear();
+  const hh = String(date.getHours()).padStart(2, "0");
+  const min = String(date.getMinutes()).padStart(2, "0");
+  return `${dd}.${mm}.${yyyy} ${hh}:${min}`;
+}
+
+function toDateTimeLocalValue(date = new Date()) {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  const hh = String(date.getHours()).padStart(2, "0");
+  const min = String(date.getMinutes()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+}
+
 const calendarState = {};
 
 function getCalendarPrefix(targetId) {
@@ -144,6 +168,71 @@ function renderNotificationList(targetId, notifications) {
     item.appendChild(message);
     target.appendChild(item);
   });
+}
+
+function renderAttendance(attendance) {
+  const ring = byId("attendance-progress-ring");
+  if (!ring) return;
+
+  const weeklyHours = Number(attendance?.weekly_hours || 0);
+  const goalHours = Number(attendance?.goal_hours || 15);
+  const progressPercent = Math.max(0, Math.min(Number(attendance?.progress_percent || 0), 100));
+  const goalReached = Boolean(attendance?.goal_reached);
+
+  ring.style.setProperty("--attendance-progress", `${progressPercent}%`);
+
+  const valueNode = byId("attendance-weekly-hours-value");
+  if (valueNode) {
+    valueNode.textContent = `${weeklyHours.toFixed(1)}h`;
+  }
+
+  const summary = byId("attendance-weekly-summary");
+  if (summary) {
+    summary.textContent = `${weeklyHours.toFixed(1)} / ${goalHours.toFixed(1)} hours this week`;
+  }
+
+  const success = byId("attendance-success-message");
+  if (success) {
+    success.classList.toggle("hidden", !goalReached);
+    success.textContent = goalReached ? "Goal reached ✓" : "";
+  }
+
+  const sessionsNode = byId("attendance-week-sessions");
+  if (sessionsNode) {
+    sessionsNode.innerHTML = "";
+    const sessions = attendance?.week_sessions || [];
+    if (!sessions.length) {
+      sessionsNode.innerHTML = '<p class="muted">No campus hours recorded this week yet.</p>';
+    } else {
+      sessions.forEach((session) => {
+        const card = document.createElement("div");
+        card.className = "exam-item";
+        card.innerHTML = `
+          <p><strong>Check-in:</strong> ${formatDateTimeDisplay(session.check_in_at)}</p>
+          <p><strong>Check-out:</strong> ${session.check_out_at ? formatDateTimeDisplay(session.check_out_at) : "Still active"}</p>
+          <p><strong>Duration:</strong> ${(session.duration_hours || 0).toFixed(2)} hours</p>
+        `;
+        sessionsNode.appendChild(card);
+      });
+    }
+  }
+}
+
+async function loadStudentAttendance() {
+  const ring = byId("attendance-progress-ring");
+  if (!ring) return;
+
+  const response = await fetch("/api/student/attendance");
+  const result = await response.json();
+  if (!result.ok) {
+    const statusNode = byId("attendance-status");
+    if (statusNode) {
+      statusNode.textContent = result.message || "Could not load attendance.";
+    }
+    return;
+  }
+
+  renderAttendance(result.attendance || {});
 }
 
 function formatRequirementsText(value) {
@@ -611,8 +700,52 @@ async function initStudentDashboard() {
   const studentEventList = byId("student-event-list");
   const studentNotificationList = byId("student-notification-list");
   const studentAnalyticsList = byId("student-analytics-list");
+  const checkInBtn = byId("attendance-checkin-btn");
+  const checkOutBtn = byId("attendance-checkout-btn");
+  const checkInInput = byId("attendance-checkin-at");
+  const checkOutInput = byId("attendance-checkout-at");
+  const attendanceStatus = byId("attendance-status");
   const profileForm = byId("student-profile-form");
   if (!examList) return;
+
+  if (checkInBtn && !checkInBtn.dataset.bound) {
+    checkInBtn.dataset.bound = "true";
+    checkInBtn.addEventListener("click", async () => {
+      const checkInAt = checkInInput?.value || toDateTimeLocalValue();
+      const result = await postJson("/api/student/attendance/checkin", { check_in_at: checkInAt });
+      if (!result.ok) {
+        if (attendanceStatus) attendanceStatus.textContent = result.message || "Could not save check-in.";
+        return;
+      }
+
+      if (attendanceStatus) attendanceStatus.textContent = "Check-in saved.";
+      await loadStudentAttendance();
+    });
+  }
+
+  if (checkOutBtn && !checkOutBtn.dataset.bound) {
+    checkOutBtn.dataset.bound = "true";
+    checkOutBtn.addEventListener("click", async () => {
+      const checkOutAt = checkOutInput?.value || toDateTimeLocalValue();
+      const result = await postJson("/api/student/attendance/checkout", { check_out_at: checkOutAt });
+      if (!result.ok) {
+        if (attendanceStatus) attendanceStatus.textContent = result.message || "Could not save check-out.";
+        return;
+      }
+
+      if (attendanceStatus) attendanceStatus.textContent = "Check-out saved.";
+      await loadStudentAttendance();
+    });
+  }
+
+  if (checkInInput && !checkInInput.value) {
+    checkInInput.value = toDateTimeLocalValue();
+  }
+  if (checkOutInput && !checkOutInput.value) {
+    checkOutInput.value = toDateTimeLocalValue();
+  }
+
+  await loadStudentAttendance();
 
   let profileSnapshot = null;
   if (profileForm) {
