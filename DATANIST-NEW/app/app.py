@@ -1,7 +1,6 @@
 import json
 import os
 import re
-import sys
 from collections import Counter
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -11,28 +10,20 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, render_template, request, send_from_directory, session, url_for
 from werkzeug.utils import secure_filename
 
-print("[DEBUG] Starting app.py imports...")
-
 try:
     from pypdf import PdfReader
-    print("[DEBUG] PdfReader imported from pypdf")
 except ImportError:
     try:
         from PyPDF2 import PdfReader
-        print("[DEBUG] PdfReader imported from PyPDF2")
     except ImportError:
-        print("[WARNING] PdfReader not available")
         PdfReader = None
 
 try:
     import docx
-    print("[DEBUG] docx module available")
 except ImportError:
-    print("[WARNING] docx module not available")
     docx = None
 
 load_dotenv()
-print("[DEBUG] Environment loaded")
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_FILE = BASE_DIR / "data" / "seed_data.json"
@@ -40,36 +31,20 @@ UPLOAD_DIR = BASE_DIR / "uploads" / "cv"
 TEMPLATE_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
 
-print(f"[DEBUG] BASE_DIR: {BASE_DIR}")
-print(f"[DEBUG] DATA_FILE: {DATA_FILE}")
-print(f"[DEBUG] DATA_FILE exists: {DATA_FILE.exists()}")
-
 # Ensure upload directory exists
-try:
-    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-    print(f"[DEBUG] UPLOAD_DIR created/verified: {UPLOAD_DIR}")
-except Exception as e:
-    print(f"[WARNING] Could not create UPLOAD_DIR: {e}")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 # Create Flask app with explicit paths for Vercel compatibility
-try:
-    app = Flask(
-        __name__,
-        template_folder=str(TEMPLATE_DIR),
-        static_folder=str(STATIC_DIR),
-        static_url_path="/static"
-    )
-    print("[DEBUG] Flask app created successfully")
-except Exception as e:
-    print(f"[ERROR] Failed to create Flask app: {e}")
-    raise
-
+app = Flask(
+    __name__,
+    template_folder=str(TEMPLATE_DIR),
+    static_folder=str(STATIC_DIR),
+    static_url_path="/static"
+)
 app.secret_key = os.getenv("SECRET_KEY", "holberton-datanist-dev-secret")
 ATTENDANCE_WEEKLY_GOAL_HOURS = 15.0
 LINKEDIN_API_URL = "https://linkedin-job-search-api.p.rapidapi.com/active-jb-7d"
 LINKEDIN_API_HOST = "linkedin-job-search-api.p.rapidapi.com"
-
-print("[DEBUG] Flask app configuration complete")
 
 
 def load_data() -> dict:
