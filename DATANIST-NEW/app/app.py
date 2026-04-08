@@ -1,5 +1,7 @@
 import json
 import os
+import re
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
@@ -7,6 +9,19 @@ import requests
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, render_template, request, send_from_directory, session, url_for
 from werkzeug.utils import secure_filename
+
+try:
+    from pypdf import PdfReader
+except ImportError:  # pragma: no cover - optional dependency
+    try:
+        from PyPDF2 import PdfReader
+    except ImportError:  # pragma: no cover - optional dependency
+        PdfReader = None
+
+try:
+    import docx
+except ImportError:  # pragma: no cover - optional dependency
+    docx = None
 
 load_dotenv()
 
@@ -60,6 +75,27 @@ def normalize_date_input(value: str) -> str | None:
     return None
 
 
+def parse_date_value(value: str):
+    normalized = normalize_date_input(value)
+    if not normalized:
+        return None
+
+    try:
+        return datetime.strptime(normalized, "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
+def is_within_next_days(date_value: str, days: int = 7) -> bool:
+    parsed_date = parse_date_value(date_value)
+    if not parsed_date:
+        return False
+
+    today = datetime.utcnow().date()
+    delta_days = (parsed_date - today).days
+    return 0 <= delta_days <= days
+
+
 def derive_weak_topics(wrong_questions: list[str]) -> list[str]:
     weak_topics = []
     for question in wrong_questions:
@@ -77,6 +113,117 @@ def derive_weak_topics(wrong_questions: list[str]) -> list[str]:
         weak_topics = ["General exam concepts"]
 
     return weak_topics[:3]
+
+
+STOP_WORDS = {
+    "a",
+    "about",
+    "and",
+    "are",
+    "as",
+    "at",
+    "be",
+    "by",
+    "can",
+    "for",
+    "from",
+    "how",
+    "in",
+    "is",
+    "it",
+    "of",
+    "on",
+    "or",
+    "that",
+    "the",
+    "this",
+    "to",
+    "with",
+    "what",
+    "which",
+    "why",
+    "you",
+    "your",
+}
+
+
+def extract_cv_text(cv_path: Path) -> str:
+    suffix = cv_path.suffix.lower()
+    collected: list[str] = []
+
+    if suffix == ".pdf" and PdfReader:
+        try:
+            reader = PdfReader(str(cv_path))
+            for page in reader.pages[:5]:
+                page_text = page.extract_text() or ""
+                if page_text.strip():
+                    collected.append(page_text.strip())
+        except Exception:
+            return ""
+    elif suffix == ".docx" and docx:
+        try:
+            document = docx.Document(str(cv_path))
+            for paragraph in document.paragraphs[:50]:
+                if paragraph.text.strip():
+                    collected.append(paragraph.text.strip())
+        except Exception:
+            return ""
+
+    return "\n".join(collected).strip()
+
+
+def extract_cv_keywords(cv_text: str) -> list[str]:
+    if not cv_text:
+        return []
+
+    tokens = re.findall(r"[A-Za-z][A-Za-z0-9+#.-]{2,}", cv_text.lower())
+    filtered = [token for token in tokens if token not in STOP_WORDS]
+    counts = Counter(filtered)
+    return [word for word, _ in counts.most_common(6)]
+
+
+def build_profile_insights(profile: dict) -> dict:
+    motivation_letter = str(profile.get("motivation_letter", "")).strip()
+    cv_filename = profile.get("cv_filename")
+    cv_keywords = profile.get("cv_keywords", []) or []
+    cv_excerpt = str(profile.get("cv_excerpt", "")).strip()
+
+    score = 0
+    notes = []
+
+    if motivation_letter:
+        score += 35
+        if len(motivation_letter) < 120:
+            notes.append("Expand the motivation letter with goals, projects, and role interests.")
+    else:
+        notes.append("Add a motivation letter.")
+
+    if cv_filename:
+        score += 35
+        if cv_keywords:
+            score += 20
+        else:
+            notes.append("Upload a parsable PDF or DOCX CV to extract skills automatically.")
+    else:
+        notes.append("Upload a CV.")
+
+    if cv_excerpt:
+        score += 10
+
+    if score >= 90:
+        status = "Strong profile"
+    elif score >= 60:
+        status = "In progress"
+    else:
+        status = "Needs attention"
+
+    return {
+        "profile_completeness": min(score, 100),
+        "profile_status": status,
+        "profile_notes": notes[:3],
+        "cv_keywords": cv_keywords[:5],
+        "cv_excerpt": cv_excerpt[:220],
+    }
 
 
 def build_learning_plan(weak_topics: list[str], wrong_questions: list[str], score: int, total: int) -> str:
@@ -171,6 +318,8 @@ def serialize_interview(interview: dict, current_user_id: str | None = None) -> 
     bookings = interview.get("bookings", {})
     booked_time_options = list(bookings.values())
     booked_by_me = current_user_id in bookings
+    capacity = len(interview.get("time_options", []))
+    booking_count = len(bookings)
     data = load_data()
     users_by_id = {user["id"]: user for user in data.get("users", [])}
     creator = users_by_id.get(interview.get("created_by", ""), {})
@@ -196,6 +345,9 @@ def serialize_interview(interview: dict, current_user_id: str | None = None) -> 
         "booking_details": booking_details,
         "booked_by_me": booked_by_me,
         "my_booking_time": bookings.get(current_user_id),
+        "booking_count": booking_count,
+        "capacity": capacity,
+        "booking_rate": round((booking_count / capacity) * 100, 1) if capacity else 0,
         "created_by_role": interview.get("created_by_role", "mentor"),
         "created_by": interview.get("created_by", ""),
         "created_by_name": creator.get("name", interview.get("created_by", "")),
@@ -207,6 +359,9 @@ def serialize_event(event: dict, current_user_id: str | None = None) -> dict:
     data = load_data()
     users_by_id = {user["id"]: user for user in data.get("users", [])}
     creator = users_by_id.get(event.get("created_by", ""), {})
+    join_count = sum(1 for decision in responses.values() if decision == "join")
+    not_join_count = sum(1 for decision in responses.values() if decision == "not_join")
+    response_count = len(responses)
 
     joined_students = [
         {
@@ -230,6 +385,10 @@ def serialize_event(event: dict, current_user_id: str | None = None) -> dict:
         "my_decision": responses.get(current_user_id),
         "joined_students": joined_students,
         "is_creator": event.get("created_by") == current_user_id,
+        "join_count": join_count,
+        "not_join_count": not_join_count,
+        "response_count": response_count,
+        "response_rate": round((response_count / max(len(data.get("users", [])) - 1, 1)) * 100, 1),
     }
 
 
@@ -240,12 +399,18 @@ def get_student_profiles(data: dict) -> dict:
 def serialize_student_profile(student_id: str, data: dict) -> dict:
     profiles = get_student_profiles(data)
     profile = profiles.get(student_id, {})
+    insights = build_profile_insights(profile)
     cv_filename = profile.get("cv_filename")
     return {
         "motivation_letter": profile.get("motivation_letter", ""),
         "cv_filename": cv_filename,
         "cv_url": url_for("get_cv_file", filename=cv_filename) if cv_filename else None,
         "updated_at": profile.get("updated_at", ""),
+        "cv_keywords": insights["cv_keywords"],
+        "cv_excerpt": insights["cv_excerpt"],
+        "profile_completeness": insights["profile_completeness"],
+        "profile_status": insights["profile_status"],
+        "profile_notes": insights["profile_notes"],
     }
 
 
@@ -529,9 +694,19 @@ def update_student_profile():
         cv_file.save(cv_path)
         cv_filename = stamped_name
 
+    cv_keywords = []
+    cv_excerpt = ""
+    if cv_filename:
+        cv_path = UPLOAD_DIR / cv_filename
+        cv_text = extract_cv_text(cv_path)
+        cv_keywords = extract_cv_keywords(cv_text)
+        cv_excerpt = cv_text[:220]
+
     profiles[user["id"]] = {
         "motivation_letter": motivation_letter,
         "cv_filename": cv_filename,
+        "cv_keywords": cv_keywords,
+        "cv_excerpt": cv_excerpt,
         "updated_at": datetime.utcnow().isoformat() + "Z",
     }
     save_data(data)

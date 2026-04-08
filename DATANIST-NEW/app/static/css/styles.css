@@ -129,6 +129,40 @@ textarea:focus {
   gap: 10px;
 }
 
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.insight-card,
+.notification-item,
+.calendar-group {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  padding: 12px;
+}
+
+.notification-item p {
+  margin: 4px 0 0;
+}
+
+.calendar-toolbar {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.calendar-group h4 {
+  margin-bottom: 12px;
+}
+
+.compact-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
 .btn {
   border: none;
   background: linear-gradient(180deg, var(--brand-gradient-start) 0%, var(--brand) 100%);

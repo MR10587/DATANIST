@@ -147,9 +147,11 @@
   ],
   "student_profiles": {
     "student-1": {
-      "motivation_letter": "I am superman",
+      "motivation_letter": "I am batman. I have batmobile. I want to be a bat",
       "cv_filename": null,
-      "updated_at": "2026-04-08T14:57:16.037660Z"
+      "cv_keywords": [],
+      "cv_excerpt": "",
+      "updated_at": "2026-04-08T15:53:46.783277Z"
     }
   },
   "scores": {

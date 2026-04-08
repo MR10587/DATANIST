@@ -11,6 +11,16 @@
   <div id="exam-list" class="stack"></div>
 </section>
 
+<section class="card" id="student-notifications">
+  <h3>Notifications</h3>
+  <div id="student-notification-list" class="stack"></div>
+</section>
+
+<section class="card" id="student-analytics">
+  <h3>Dashboard Analytics</h3>
+  <div id="student-analytics-list"></div>
+</section>
+
 <section class="card" id="student-analyses">
   <h3>Exam Analyses</h3>
   <div id="analysis-list" class="stack"></div>
@@ -22,6 +32,15 @@
     <label>Upload CV (PDF, DOC, DOCX)</label>
     <input id="student-cv-file" name="cv_file" type="file" accept=".pdf,.doc,.docx" />
     <p id="student-cv-current" class="muted"></p>
+    <p id="student-profile-meta" class="muted"></p>
+
+    <div class="stack">
+      <strong>Profile Notes</strong>
+      <ul id="student-profile-notes" class="stack compact-list"></ul>
+    </div>
+
+    <p id="student-cv-keywords" class="muted"></p>
+    <p id="student-cv-excerpt" class="muted"></p>
 
     <label>Motivation Letter</label>
     <textarea id="student-motivation-letter" name="motivation_letter" rows="6" placeholder="Write your motivation letter..."></textarea>
@@ -43,6 +62,11 @@
 
 <section class="card" id="student-calendar">
   <h3>Calendar</h3>
+  <div class="calendar-toolbar">
+    <label for="student-calendar-month-filter">Month view</label>
+    <select id="student-calendar-month-filter"></select>
+    <p id="student-calendar-summary" class="muted"></p>
+  </div>
   <div id="student-calendar-list" class="stack"></div>
 </section>
 

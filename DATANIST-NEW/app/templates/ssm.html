@@ -7,7 +7,18 @@
 </section>
 
 <section class="card">
-  <h3>Students Section</h3>
+  <h3>Notifications</h3>
+  <div id="ssm-notification-list" class="stack"></div>
+</section>
+
+<section class="card">
+  <h3>Analytics</h3>
+  <div id="ssm-analytics-list"></div>
+</section>
+
+<section class="card">
+  <h3>Review Panel</h3>
+  <p class="muted">Click a student to expand profile, exam, and CV details.</p>
   <div id="ssm-students" class="stack"></div>
 </section>
 
@@ -36,6 +47,11 @@
 
 <section class="card">
   <h3>Calendar</h3>
+  <div class="calendar-toolbar">
+    <label for="ssm-calendar-month-filter">Month view</label>
+    <select id="ssm-calendar-month-filter"></select>
+    <p id="ssm-calendar-summary" class="muted"></p>
+  </div>
   <div id="ssm-calendar-list" class="stack"></div>
 </section>
 
