@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}Holberton AZ{% endblock %}</title>
+    <title>{% block title %}Holberton{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
   </head>
   <body>
     <header class="topbar">
-      <h1>Holberton AZ</h1>
+      <h1>Holberton</h1>
       {% if session.get('user_id') %}
       <a class="btn btn-secondary" href="{{ url_for('logout') }}">Logout</a>
       {% endif %}
