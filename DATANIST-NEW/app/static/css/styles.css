@@ -5,8 +5,6 @@
   --muted: #6a5660;
   --brand: #e1003c;
   --brand-strong: #b40030;
-  --brand-rgb: 225, 0, 60;
-  --brand-strong-rgb: 180, 0, 48;
   --brand-gradient-start: #ef0f4f;
   --brand-soft: #ffe7ee;
   --label-color: #412a33;
@@ -42,15 +40,6 @@ body {
     radial-gradient(circle at 15% 15%, rgba(225, 0, 60, 0.14), transparent 38%),
     radial-gradient(circle at 85% 0%, rgba(180, 0, 48, 0.1), transparent 34%),
     var(--bg);
-}
-
-@supports (background: radial-gradient(circle at 15% 15%, rgba(var(--brand-rgb), 0.14), transparent 38%)) {
-  body {
-    background:
-      radial-gradient(circle at 15% 15%, rgba(var(--brand-rgb), 0.14), transparent 38%),
-      radial-gradient(circle at 85% 0%, rgba(var(--brand-strong-rgb), 0.1), transparent 34%),
-      var(--bg);
-  }
 }
 
 p,
