@@ -146,6 +146,61 @@ function renderNotificationList(targetId, notifications) {
   });
 }
 
+function formatRequirementsText(value) {
+  const text = String(value || "").trim();
+  return text || "No requirements were added by the mentor for this exam yet.";
+}
+
+async function renderMentorExamRequirements() {
+  const target = byId("mentor-exam-requirements-list");
+  if (!target) return;
+
+  const res = await fetch("/api/mentor/exams");
+  const data = await res.json();
+  if (!data.ok) return;
+
+  target.innerHTML = "";
+  if (!data.exams.length) {
+    target.innerHTML = '<p class="muted">No exams created yet.</p>';
+    return;
+  }
+
+  data.exams.forEach((exam) => {
+    const card = document.createElement("div");
+    card.className = "exam-item requirements-editor";
+    card.innerHTML = `
+      <h4>${exam.name}</h4>
+      <p><strong>Topic:</strong> ${exam.topic}</p>
+      <p><strong>Questions:</strong> ${exam.question_count}</p>
+      <label>Requirements / Notes for students</label>
+      <textarea data-requirements-id="${exam.id}" rows="5" placeholder="Write what students should revise before this exam...">${escapeHtml(exam.requirements || "")}</textarea>
+      <button class="btn" data-save-requirements-id="${exam.id}">Save Requirements</button>
+      <p class="muted" data-requirements-message-id="${exam.id}"></p>
+    `;
+    target.appendChild(card);
+  });
+
+  target.querySelectorAll("button[data-save-requirements-id]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const examId = button.getAttribute("data-save-requirements-id");
+      const textarea = target.querySelector(`textarea[data-requirements-id="${examId}"]`);
+      const messageNode = target.querySelector(`[data-requirements-message-id="${examId}"]`);
+      if (!examId || !textarea || !messageNode) return;
+
+      const result = await postJson(`/api/mentor/exams/${examId}/requirements`, {
+        requirements: textarea.value,
+      });
+
+      if (!result.ok) {
+        messageNode.textContent = result.message || "Could not save requirements.";
+        return;
+      }
+
+      messageNode.textContent = "Requirements saved.";
+    });
+  });
+}
+
 function renderInterviewCard(interview, mode = "student") {
   const card = document.createElement("div");
   card.className = "exam-item";
@@ -639,10 +694,12 @@ async function initStudentDashboard() {
     card.className = "exam-item";
     const buttonLabel = exam.attempted ? "Completed" : "Start Exam";
     const buttonState = exam.attempted ? "disabled aria-disabled=\"true\"" : `data-id="${exam.id}"`;
+    const requirementsPreview = formatRequirementsText(exam.requirements);
     card.innerHTML = `
       <h4>${exam.name}</h4>
       <p>Topic: ${exam.topic}</p>
       <p>Question count: ${exam.question_count}</p>
+      <p><strong>Requirements:</strong> ${escapeHtml(requirementsPreview)}</p>
       <p>${exam.attempted ? `Score: ${exam.score}/${exam.total}` : "No attempt yet"}</p>
       <button class="btn" ${buttonState}>${buttonLabel}</button>
     `;
@@ -804,6 +861,10 @@ async function openExamForStudent(examId) {
   byId("exam-attempt").classList.remove("hidden");
   byId("exam-result").classList.add("hidden");
   byId("exam-title").textContent = `${exam.name} (${exam.topic})`;
+  const requirementsBox = byId("exam-requirements-box");
+  if (requirementsBox) {
+    requirementsBox.innerHTML = `<strong>Mentor Requirements Before Exam:</strong>\n${escapeHtml(formatRequirementsText(exam.requirements))}`;
+  }
 
   const form = byId("exam-form");
   form.innerHTML = "";
@@ -905,6 +966,7 @@ async function initMentorDashboard() {
 
     const name = byId("exam-name").value.trim();
     const topic = byId("exam-topic").value.trim();
+    const requirements = byId("exam-requirements")?.value?.trim() || "";
     const questionCount = Number(byId("question-count").value);
     const questions = [];
 
@@ -917,7 +979,7 @@ async function initMentorDashboard() {
       });
     }
 
-    const result = await postJson("/api/mentor/exams", { name, topic, questions });
+    const result = await postJson("/api/mentor/exams", { name, topic, requirements, questions });
     if (!result.ok) {
       message.textContent = result.message || "An error occurred while creating the exam.";
       return;
@@ -926,6 +988,7 @@ async function initMentorDashboard() {
     message.textContent = `Exam created successfully: ${result.exam_id}`;
     form.reset();
     byId("questions-container").innerHTML = "";
+    await renderMentorExamRequirements();
     mentorStudents = await loadStaffStudents("mentor-students");
     await renderStaffInsights("mentor", mentorStudents || []);
   });
@@ -1056,6 +1119,8 @@ async function initMentorDashboard() {
 
     await loadMentorEvents();
   }
+
+  await renderMentorExamRequirements();
 }
 
 async function initSsmDashboard() {

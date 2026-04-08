@@ -27,6 +27,7 @@
       "id": "exam-1",
       "name": "Python Fundamentals Quiz",
       "topic": "Python Basics",
+      "requirements": "Revise list comprehensions, loops, and core Flask decorators.\nDo 10 short routing practice tasks.\nPrepare one mini app example before the exam.",
       "created_by": "mentor-1",
       "questions": [
         {
@@ -57,6 +58,7 @@
       "id": "exam-2",
       "name": "Javascript",
       "topic": "DOM",
+      "requirements": "Repeat DOM selectors, event listeners, and form handling.\nPractice manipulating classes and text content.\nBuild one mini interactive component before the exam.",
       "created_by": "mentor-1",
       "questions": [
         {
@@ -87,6 +89,7 @@
       "id": "exam-3",
       "name": "Python",
       "topic": "OOP",
+      "requirements": "Review class vs object, inheritance, and encapsulation.\nPractice writing constructors and instance methods.\nSolve at least 5 OOP design questions before exam day.",
       "created_by": "mentor-1",
       "questions": [
         {
