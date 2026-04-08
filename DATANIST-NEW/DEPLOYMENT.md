@@ -165,6 +165,43 @@ If you need persistent data:
 
 ## Troubleshooting
 
+### Issue: "could not import 'index.py'" Error
+**This is the most common error and has been fixed!**
+
+**Cause**: Missing `__init__.py` file in app folder, import path issues, or missing dependencies.
+
+**Solution (Already Applied)**:
+1. ✅ Created `app/__init__.py` (required for Python package)
+2. ✅ Updated `index.py` with proper sys.path handling
+3. ✅ Added missing dependencies to `requirements.txt`:
+   - Werkzeug
+   - pypdf
+   - python-docx
+4. ✅ Updated `vercel.json` with explicit Python runtime
+
+**If you still see this error**:
+```bash
+# 1. Test locally first
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+python index.py
+# Should output Flask app, not errors
+
+# 2. Verify file structure
+# Ensure you have:
+# - app/__init__.py (empty file)
+# - app/app.py (Flask app definition)
+# - index.py (WSGI entry point)
+# - requirements.txt (with all dependencies)
+
+# 3. Push changes to Git and redeploy
+git add .
+git commit -m "Fix import errors"
+git push origin main
+# Vercel will auto-redeploy
+```
+
 ### Issue: "502 Bad Gateway"
 - Check server logs in Vercel dashboard
 - Ensure index.py is importing app correctly
