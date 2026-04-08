@@ -738,6 +738,20 @@ def student_page():
     return render_template("student.html", user=user)
 
 
+@app.route("/student/exams/<exam_id>")
+def student_exam_page(exam_id: str):
+    user = require_role("student")
+    if not user:
+        return redirect(url_for("login"))
+
+    data = load_data()
+    exam = next((e for e in data.get("exams", []) if e.get("id") == exam_id), None)
+    if not exam:
+        return redirect(url_for("student_page"))
+
+    return render_template("student_exam.html", user=user, exam_id=exam_id)
+
+
 @app.route("/mentor")
 def mentor_page():
     user = require_role("mentor")

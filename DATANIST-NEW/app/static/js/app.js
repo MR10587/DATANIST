@@ -1019,23 +1019,50 @@ async function initStudentDashboard() {
 }
 
 async function openExamForStudent(examId) {
+  if (!examId) return;
+  window.location.href = `/student/exams/${encodeURIComponent(examId)}`;
+}
+
+async function initStudentExamPage() {
+  const examPage = byId("student-exam-page");
+  if (!examPage) return;
+
+  const examId = examPage.dataset.examId;
+  if (!examId) return;
+
+  const pageMessage = byId("exam-page-message");
+  const form = byId("exam-form");
+  const submitBtn = byId("submit-exam");
+  const requirementsBox = byId("exam-requirements-box");
+
   const detailRes = await fetch(`/api/student/exams/${examId}`);
   const detailData = await detailRes.json();
   if (!detailData.ok) {
-    alert(detailData.message || "This exam cannot be opened again.");
+    if (pageMessage) {
+      pageMessage.textContent = detailData.message || "This exam cannot be opened again.";
+    }
+    if (submitBtn) {
+      submitBtn.classList.add("hidden");
+    }
     return;
   }
 
   const exam = detailData.exam;
-  byId("exam-attempt").classList.remove("hidden");
-  byId("exam-result").classList.add("hidden");
   byId("exam-title").textContent = `${exam.name} (${exam.topic})`;
-  const requirementsBox = byId("exam-requirements-box");
+  if (pageMessage) {
+    pageMessage.textContent = `Answer all ${exam.questions.length} questions and submit.`;
+  }
+
   if (requirementsBox) {
+    requirementsBox.classList.remove("hidden");
     requirementsBox.innerHTML = `<strong>Mentor Requirements Before Exam:</strong>\n${escapeHtml(formatRequirementsText(exam.requirements))}`;
   }
 
-  const form = byId("exam-form");
+  const resultSection = byId("exam-result");
+  if (resultSection) {
+    resultSection.classList.add("hidden");
+  }
+
   form.innerHTML = "";
 
   exam.questions.forEach((q) => {
@@ -1045,27 +1072,43 @@ async function openExamForStudent(examId) {
     const optionsHtml = q.options
       .map(
         (opt, idx) =>
-          `<label><input type="radio" name="${q.id}" value="${idx}" required /> ${opt}</label>`
+          `<label class="exam-option"><input type="radio" name="${q.id}" value="${idx}" required /><span>${escapeHtml(opt)}</span></label>`
       )
-      .join("<br />");
+      .join("");
 
     block.innerHTML = `
-      <p><strong>${q.text}</strong></p>
+      <p class="exam-question-title"><strong>${escapeHtml(q.text)}</strong></p>
       ${optionsHtml}
     `;
     form.appendChild(block);
   });
 
-  const submitBtn = byId("submit-exam");
+  submitBtn.classList.remove("hidden");
   submitBtn.onclick = async () => {
     const answers = {};
     const formData = new FormData(form);
+
+    if (formData.entries) {
+      const selectedCount = Array.from(formData.entries()).length;
+      if (selectedCount < exam.questions.length) {
+        if (pageMessage) {
+          pageMessage.textContent = "Please answer all questions before submitting.";
+        }
+        return;
+      }
+    }
+
     for (const [key, value] of formData.entries()) {
       answers[key] = Number(value);
     }
 
     const submitData = await postJson(`/api/student/exams/${exam.id}/submit`, { answers });
-    if (!submitData.ok) return;
+    if (!submitData.ok) {
+      if (pageMessage) {
+        pageMessage.textContent = submitData.message || "Could not submit exam.";
+      }
+      return;
+    }
 
     byId("exam-result").classList.remove("hidden");
     byId("score-text").textContent = `Score: ${submitData.score}/${submitData.total}`;
@@ -1075,7 +1118,11 @@ async function openExamForStudent(examId) {
       ? "Congratulations! You answered every question correctly."
       : "Your personalized analysis is below.";
 
-    await initStudentDashboard();
+    if (pageMessage) {
+      pageMessage.textContent = "Exam submitted successfully.";
+    }
+    submitBtn.classList.add("hidden");
+    form.innerHTML = "";
   };
 }
 
@@ -1612,6 +1659,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   initDashboardPanels();
   await initLogin();
   await initStudentDashboard();
+  await initStudentExamPage();
   await initMentorDashboard();
   await initSsmDashboard();
   await loadStaffStudents("mentor-students");

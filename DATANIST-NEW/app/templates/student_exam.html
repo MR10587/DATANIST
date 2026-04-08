@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Exam Attempt{% endblock %}
+{% block content %}
+<section class="card" id="student-exam-page" data-exam-id="{{ exam_id }}">
+  <div class="row between exam-page-header">
+    <h2 id="exam-title">Exam</h2>
+    <a class="btn btn-secondary" href="{{ url_for('student_page') }}">Back to Dashboard</a>
+  </div>
+
+  <p id="exam-page-message" class="muted">Loading exam questions...</p>
+  <div id="exam-requirements-box" class="requirements-box hidden"></div>
+
+  <form id="exam-form" class="stack"></form>
+  <button id="submit-exam" type="button" class="btn hidden">Submit Exam</button>
+
+  <section class="card hidden" id="exam-result">
+    <h3>Result</h3>
+    <p id="score-text"></p>
+    <p id="result-message" class="muted"></p>
+    <p id="weak-topics" class="muted"></p>
+    <div>
+      <h4>Gemini Personalized Learning Plan</h4>
+      <pre id="learning-plan" class="plan"></pre>
+    </div>
+  </section>
+</section>
+{% endblock %}
