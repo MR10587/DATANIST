@@ -207,6 +207,38 @@ async function loadLeaderboard(targetId) {
   });
 }
 
+async function loadContacts(targetId) {
+  const target = byId(targetId);
+  if (!target) return;
+
+  const response = await fetch("/api/contacts");
+  const result = await response.json();
+
+  target.innerHTML = "";
+  if (!result.ok) {
+    target.innerHTML = `<p class="muted">${escapeHtml(result.message || "Could not load contacts.")}</p>`;
+    return;
+  }
+
+  const contacts = Array.isArray(result.contacts) ? result.contacts : [];
+  if (!contacts.length) {
+    target.innerHTML = '<p class="muted">No contacts available.</p>';
+    return;
+  }
+
+  contacts.forEach((contact) => {
+    const card = document.createElement("div");
+    card.className = "exam-item";
+    card.innerHTML = `
+      <h4>${escapeHtml(contact.name || "Unknown")}</h4>
+      <p><strong>Role:</strong> ${escapeHtml(contact.role || "-")}</p>
+      <p><strong>Email:</strong> ${escapeHtml(contact.email || "-")}</p>
+      <p><strong>Phone:</strong> ${escapeHtml(contact.phone || "Not provided")}</p>
+    `;
+    target.appendChild(card);
+  });
+}
+
 function renderAttendance(attendance) {
   const ring = byId("attendance-progress-ring");
   if (!ring) return;
@@ -1054,6 +1086,7 @@ async function initStudentDashboard() {
 
   renderCalendar(interviewItems, eventItems, "student-calendar-list", "student");
   await loadLeaderboard("student-leaderboard-list");
+  await loadContacts("student-contacts-list");
 }
 
 async function openExamForStudent(examId) {
@@ -1375,6 +1408,7 @@ async function initMentorDashboard() {
   }
 
   await loadLeaderboard("mentor-leaderboard-list");
+  await loadContacts("mentor-contacts-list");
 
   await renderMentorExamRequirements();
 }
@@ -1511,6 +1545,7 @@ async function initSsmDashboard() {
   }
 
   await loadLeaderboard("ssm-leaderboard-list");
+  await loadContacts("ssm-contacts-list");
 }
 
 async function loadStaffStudents(targetId = "mentor-students") {
@@ -1558,6 +1593,7 @@ async function loadStaffStudents(targetId = "mentor-students") {
     detail.className = "exam-item hidden";
     detail.innerHTML = `
       <p><strong>Email:</strong> ${s.email}</p>
+      <p><strong>Phone:</strong> ${escapeHtml(s.phone || "Not provided")}</p>
       <p><strong>Profile completeness:</strong> ${profileCompleteness}% (${escapeHtml(profileStatus)})</p>
       <p>${scoresText}</p>
       <p><strong>Average exam score:</strong> ${averageScore}%</p>

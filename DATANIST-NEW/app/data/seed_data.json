@@ -5,6 +5,7 @@
       "name": "Mentor User",
       "role": "mentor",
       "email": "mentor@holberton.az",
+      "phone": "+994 50 111 22 33",
       "password": "Mentor123!"
     },
     {
@@ -12,6 +13,7 @@
       "name": "Student User",
       "role": "student",
       "email": "student@holberton.az",
+      "phone": "+994 50 200 10 01",
       "password": "Student123!"
     },
     {
@@ -19,6 +21,7 @@
       "name": "Aysel Karimova",
       "role": "student",
       "email": "aysel@holberton.az",
+      "phone": "+994 50 200 10 02",
       "password": "Student123!"
     },
     {
@@ -26,6 +29,7 @@
       "name": "Murad Aliyev",
       "role": "student",
       "email": "murad@holberton.az",
+      "phone": "+994 50 200 10 03",
       "password": "Student123!"
     },
     {
@@ -33,6 +37,7 @@
       "name": "Nigar Mammadli",
       "role": "student",
       "email": "nigar@holberton.az",
+      "phone": "+994 50 200 10 04",
       "password": "Student123!"
     },
     {
@@ -40,6 +45,7 @@
       "name": "SSM User",
       "role": "ssm",
       "email": "ssm@holberton.az",
+      "phone": "+994 50 333 44 55",
       "password": "SSM123!"
     }
   ],

@@ -736,6 +736,16 @@ def build_students_leaderboard(data: dict) -> list[dict]:
     return rows
 
 
+def serialize_contact_user(user: dict) -> dict:
+    return {
+        "id": user.get("id", ""),
+        "name": user.get("name", "Unknown"),
+        "role": user.get("role", ""),
+        "email": user.get("email", ""),
+        "phone": user.get("phone", "Not provided"),
+    }
+
+
 @app.route("/")
 def root():
     if get_current_user():
@@ -1410,6 +1420,7 @@ def mentor_students():
                 "student_id": student["id"],
                 "name": student["name"],
                 "email": student["email"],
+                "phone": student.get("phone", "Not provided"),
                 "exam_scores": exam_scores,
                 "latest_analysis": latest_analysis,
                 "profile": serialize_student_profile(student["id"], data),
@@ -1417,6 +1428,31 @@ def mentor_students():
         )
 
     return jsonify({"ok": True, "students": result})
+
+
+@app.get("/api/contacts")
+def get_contacts():
+    user = require_role("student", "mentor", "ssm")
+    if not user:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    data = load_data()
+    users = data.get("users", [])
+
+    if user["role"] == "student":
+        contacts = [
+            serialize_contact_user(item)
+            for item in users
+            if item.get("role") in {"mentor", "ssm"}
+        ]
+    else:
+        contacts = [
+            serialize_contact_user(item)
+            for item in users
+            if item.get("role") == "student"
+        ]
+
+    return jsonify({"ok": True, "contacts": contacts})
 
 
 @app.get("/api/leaderboard")
