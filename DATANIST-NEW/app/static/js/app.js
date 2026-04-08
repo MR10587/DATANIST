@@ -171,7 +171,134 @@ function renderNotificationList(targetId, notifications) {
 
     item.appendChild(title);
     item.appendChild(message);
+
+    if (!notification.read && notification.id) {
+      const markReadBtn = document.createElement("button");
+      markReadBtn.type = "button";
+      markReadBtn.className = "btn btn-secondary notification-action";
+      markReadBtn.textContent = "Mark read";
+      markReadBtn.addEventListener("click", async () => {
+        const response = await fetch(`/api/notifications/${encodeURIComponent(notification.id)}/read`, { method: "POST" });
+        const result = await response.json();
+        if (result.ok) {
+          await refreshNotifications();
+        }
+      });
+      item.appendChild(markReadBtn);
+    }
+
     target.appendChild(item);
+  });
+}
+
+async function refreshNotifications() {
+  const response = await fetch("/api/notifications");
+  const result = await response.json();
+  if (!result.ok) return null;
+
+  const data = result.notifications || [];
+  const grouped = data.reduce((accumulator, item) => {
+    const key = item.category || "general";
+    accumulator[key] = accumulator[key] || [];
+    accumulator[key].push(item);
+    return accumulator;
+  }, {});
+
+  return { notifications: data, grouped, unreadCount: result.unread_count || 0 };
+}
+
+async function loadRoleNotifications(prefix) {
+  const snapshot = await refreshNotifications();
+  if (!snapshot) return;
+
+  const targetId = `${prefix}-notification-list`;
+  const target = byId(targetId);
+  if (!target) return;
+
+  target.innerHTML = "";
+  if (!snapshot.notifications.length) {
+    target.innerHTML = '<p class="muted">No notifications right now.</p>';
+    return;
+  }
+
+  snapshot.notifications.forEach((notification) => {
+    const item = document.createElement("div");
+    item.className = `notification-item ${notification.read ? "is-read" : "is-unread"}`;
+    item.innerHTML = `
+      <div class="notification-head">
+        <strong>${escapeHtml(notification.title)}</strong>
+        <span class="notification-badge">${notification.category || "general"}</span>
+      </div>
+      <p>${escapeHtml(notification.message)}</p>
+      ${notification.read ? '<span class="notification-status">Read</span>' : '<span class="notification-status unread">Unread</span>'}
+    `;
+
+    if (!notification.read && notification.id) {
+      const markReadBtn = document.createElement("button");
+      markReadBtn.type = "button";
+      markReadBtn.className = "btn btn-secondary notification-action";
+      markReadBtn.textContent = "Mark read";
+      markReadBtn.addEventListener("click", async () => {
+        const response = await fetch(`/api/notifications/${encodeURIComponent(notification.id)}/read`, { method: "POST" });
+        const result = await response.json();
+        if (result.ok) {
+          await loadRoleNotifications(prefix);
+        }
+      });
+      item.appendChild(markReadBtn);
+    }
+
+    target.appendChild(item);
+  });
+}
+
+async function loadAttendanceAnalytics() {
+  const target = byId("student-attendance-analytics");
+  if (!target) return;
+
+  const response = await fetch("/api/student/attendance/analytics");
+  const result = await response.json();
+  if (!result.ok) return;
+
+  const analytics = result.analytics || {};
+  const monthList = Array.isArray(analytics.monthly_hours) && analytics.monthly_hours.length
+    ? analytics.monthly_hours.map((item) => `<li>${formatMonthLabel(item.month)}: ${Number(item.hours || 0).toFixed(1)}h</li>`).join("")
+    : "<li>No month breakdown yet.</li>";
+
+  target.innerHTML = `
+    <div class="insights-grid">
+      <div class="insight-card"><p class="muted">Total hours</p><h4>${Number(analytics.total_hours || 0).toFixed(1)}h</h4></div>
+      <div class="insight-card"><p class="muted">Sessions</p><h4>${analytics.completed_sessions || 0}</h4></div>
+      <div class="insight-card"><p class="muted">Current streak</p><h4>${analytics.current_streak_days || 0} day(s)</h4></div>
+    </div>
+    <div class="exam-item">
+      <h4>Monthly hours</h4>
+      <ul class="compact-list">${monthList}</ul>
+    </div>
+  `;
+}
+
+function renderExamReviewPanel(exam, reviewItems) {
+  const target = byId("exam-review-list");
+  if (!target) return;
+
+  target.innerHTML = "";
+  const items = Array.isArray(reviewItems) ? reviewItems : [];
+  if (!items.length) {
+    target.innerHTML = '<p class="muted">No review details available yet.</p>';
+    return;
+  }
+
+  items.forEach((item) => {
+    const card = document.createElement("div");
+    card.className = `exam-item ${item.is_correct ? "review-correct" : "review-wrong"}`;
+    card.innerHTML = `
+      <h4>${escapeHtml(item.question)}</h4>
+      <p><strong>Your answer:</strong> ${escapeHtml(item.selected_text || "No answer selected")}</p>
+      <p><strong>Correct answer:</strong> ${escapeHtml(item.correct_text || "-")}</p>
+      <p class="muted">${item.is_correct ? "Correct" : "Needs review"}</p>
+    `;
+    target.appendChild(card);
   });
 }
 
@@ -1076,6 +1203,7 @@ async function initStudentDashboard() {
   });
 
   renderNotificationList("student-notification-list", notifications);
+  await loadRoleNotifications("student");
 
   renderMetricCards("student-analytics-list", [
     {
@@ -1103,6 +1231,7 @@ async function initStudentDashboard() {
   renderCalendar(interviewItems, eventItems, "student-calendar-list", "student");
   await loadLeaderboard("student-leaderboard-list");
   await loadContacts("student-contacts-list");
+  await loadAttendanceAnalytics();
 }
 
 async function openExamForStudent(examId) {
@@ -1148,6 +1277,11 @@ async function initStudentExamPage() {
   const resultSection = byId("exam-result");
   if (resultSection) {
     resultSection.classList.add("hidden");
+  }
+
+  const reviewList = byId("exam-review-list");
+  if (reviewList) {
+    reviewList.innerHTML = "";
   }
 
   form.innerHTML = "";
@@ -1204,6 +1338,8 @@ async function initStudentExamPage() {
     byId("result-message").textContent = submitData.congratulations
       ? "Congratulations! You answered every question correctly."
       : "Your personalized analysis is below.";
+
+    renderExamReviewPanel(exam, submitData.question_review || []);
 
     if (pageMessage) {
       pageMessage.textContent = "Exam submitted successfully.";
@@ -1714,7 +1850,7 @@ async function renderStaffInsights(prefix, students) {
       )
     : 0;
 
-  renderNotificationList(`${prefix}-notification-list`, notifications);
+  await loadRoleNotifications(prefix);
   renderMetricCards(`${prefix}-analytics-list`, [
     {
       label: "Average exam score",

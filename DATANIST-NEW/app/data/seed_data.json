@@ -276,6 +276,12 @@
         "check_in_at": "2026-04-08T22:59:00",
         "check_out_at": "2026-04-09T22:00:00",
         "duration_hours": 23.02
+      },
+      {
+        "id": "attendance-2",
+        "check_in_at": "2026-04-09T00:45:00",
+        "check_out_at": "2026-04-09T11:45:00",
+        "duration_hours": 11.0
       }
     ]
   },
@@ -476,5 +482,14 @@
         "submitted_at": "2026-04-08T20:17:42.100000Z"
       }
     }
+  },
+  "notification_reads": {
+    "student-1": [
+      "event-event-1-student-1",
+      "profile-student-1",
+      "interview-open-interview-2",
+      "interview-interview-1-student-1",
+      "attendance-goal-student-1-2026-04-06"
+    ]
   }
 }

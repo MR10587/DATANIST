@@ -75,7 +75,10 @@
     </section>
 
     <section class="card dashboard-panel" id="ssm-calendar">
-      <h3>Calendar</h3>
+      <div class="row between exam-page-header">
+        <h3>Calendar</h3>
+        <a class="btn btn-secondary" href="{{ url_for('export_calendar_ics') }}">Export Calendar</a>
+      </div>
       <div class="calendar-toolbar">
         <label for="ssm-calendar-month-filter">Month view</label>
         <select id="ssm-calendar-month-filter"></select>

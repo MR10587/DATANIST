@@ -107,7 +107,10 @@
     </section>
 
     <section class="card dashboard-panel" id="mentor-calendar">
-      <h3>Calendar</h3>
+      <div class="row between exam-page-header">
+        <h3>Calendar</h3>
+        <a class="btn btn-secondary" href="{{ url_for('export_calendar_ics') }}">Export Calendar</a>
+      </div>
       <div class="calendar-toolbar">
         <label for="mentor-calendar-month-filter">Month view</label>
         <select id="mentor-calendar-month-filter"></select>

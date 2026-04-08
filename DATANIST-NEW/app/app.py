@@ -89,6 +89,13 @@ def parse_date_value(value: str):
         return None
 
 
+def format_date_display_py(value: str) -> str:
+    parsed_date = parse_date_value(value)
+    if not parsed_date:
+        return str(value or "")
+    return parsed_date.strftime("%d.%m.%Y")
+
+
 def is_within_next_days(date_value: str, days: int = 7) -> bool:
     parsed_date = parse_date_value(date_value)
     if not parsed_date:
@@ -682,6 +689,291 @@ def serialize_student_profile(student_id: str, data: dict) -> dict:
     }
 
 
+def get_notification_reads(data: dict) -> dict:
+    return data.setdefault("notification_reads", {})
+
+
+def build_notification_item(notification_id: str, title: str, message: str, category: str, priority: int = 2) -> dict:
+    return {
+        "id": notification_id,
+        "title": title,
+        "message": message,
+        "category": category,
+        "priority": priority,
+    }
+
+
+def build_user_notifications(user: dict, data: dict) -> list[dict]:
+    role = user.get("role", "")
+    user_id = user.get("id", "")
+    notifications: list[dict] = []
+
+    if role == "student":
+        profile = serialize_student_profile(user_id, data)
+        if (profile.get("profile_completeness") or 0) < 100:
+            notifications.append(
+                build_notification_item(
+                    f"profile-{user_id}",
+                    "Profile reminder",
+                    f"Your profile is {profile.get('profile_completeness', 0)}% complete.",
+                    "profile",
+                    3,
+                )
+            )
+
+        scores = data.get("scores", {}).get(user_id, {})
+        if not scores:
+            notifications.append(
+                build_notification_item(
+                    f"exam-reminder-{user_id}",
+                    "Exam reminder",
+                    "You have not submitted any exams yet.",
+                    "exam",
+                    3,
+                )
+            )
+        else:
+            for exam in data.get("exams", []):
+                if exam.get("id") not in scores:
+                    notifications.append(
+                        build_notification_item(
+                            f"exam-study-{exam.get('id')}",
+                            f"Study for {exam.get('name', 'exam')}",
+                            f"Review the mentor requirements before your {exam.get('topic', 'next')} exam.",
+                            "exam",
+                            2,
+                        )
+                    )
+                    break
+
+        attendance = serialize_student_attendance(user_id, data)
+        if attendance.get("goal_reached"):
+            notifications.append(
+                build_notification_item(
+                    f"attendance-goal-{user_id}-{attendance.get('week_start')}",
+                    "Attendance goal reached",
+                    "You reached the weekly 15 hour campus target.",
+                    "attendance",
+                    1,
+                )
+            )
+        elif attendance.get("weekly_hours", 0) > 0:
+            notifications.append(
+                build_notification_item(
+                    f"attendance-progress-{user_id}-{attendance.get('week_start')}",
+                    "Attendance progress",
+                    f"You have completed {attendance.get('weekly_hours', 0):.1f} of 15.0 hours this week.",
+                    "attendance",
+                    2,
+                )
+            )
+
+        interview_entries = [serialize_interview(interview, user_id) for interview in data.get("interviews", [])]
+        booked_interviews = [item for item in interview_entries if item.get("booked_by_me") and is_within_next_days(item.get("date", ""), 14)]
+        if booked_interviews:
+            next_interview = sorted(booked_interviews, key=lambda item: item.get("date", ""))[0]
+            notifications.append(
+                build_notification_item(
+                    f"interview-{next_interview['id']}-{user_id}",
+                    "Upcoming interview",
+                    f"{next_interview['title']} is scheduled for {format_date_display_py(next_interview['date'])} at {next_interview.get('my_booking_time') or 'TBA'}.",
+                    "interview",
+                    1,
+                )
+            )
+
+        open_interviews = [item for item in interview_entries if not item.get("booked_by_me") and (item.get("available_time_options") or [])]
+        if open_interviews:
+            next_open = sorted(open_interviews, key=lambda item: item.get("date", ""))[0]
+            notifications.append(
+                build_notification_item(
+                    f"interview-open-{next_open['id']}",
+                    "New interview slots",
+                    f"{next_open['title']} has open slots on {format_date_display_py(next_open['date'])}.",
+                    "interview",
+                    2,
+                )
+            )
+
+        joined_events = [serialize_event(event, user_id) for event in data.get("events", []) if event.get("responses", {}).get(user_id) == "join"]
+        if joined_events:
+            next_event = sorted(joined_events, key=lambda item: item.get("date", ""))[0]
+            notifications.append(
+                build_notification_item(
+                    f"event-{next_event['id']}-{user_id}",
+                    "Upcoming event",
+                    f"{next_event['name']} happens on {format_date_display_py(next_event['date'])} at {next_event.get('time') or 'TBA'}.",
+                    "event",
+                    2,
+                )
+            )
+
+    elif role in {"mentor", "ssm"}:
+        created_interviews = [serialize_interview(interview, user_id) for interview in data.get("interviews", []) if interview.get("created_by") == user_id]
+        if created_interviews:
+            next_interview = sorted(created_interviews, key=lambda item: item.get("date", ""))[0]
+            notifications.append(
+                build_notification_item(
+                    f"staff-interview-{next_interview['id']}",
+                    "Interview reminder",
+                    f"{next_interview['title']} is scheduled for {format_date_display_py(next_interview['date'])} with {next_interview.get('booking_count', 0)}/{next_interview.get('capacity', 0)} booked slots.",
+                    "staff",
+                    1,
+                )
+            )
+
+        created_events = [serialize_event(event, user_id) for event in data.get("events", []) if event.get("created_by") == user_id]
+        if created_events:
+            next_event = sorted(created_events, key=lambda item: item.get("date", ""))[0]
+            notifications.append(
+                build_notification_item(
+                    f"staff-event-{next_event['id']}",
+                    "Event reminder",
+                    f"{next_event['name']} happens on {format_date_display_py(next_event['date'])} at {next_event.get('time') or 'TBA'}.",
+                    "staff",
+                    1,
+                )
+            )
+
+        students = [u for u in data.get("users", []) if u.get("role") == "student"]
+        needs_review = [student for student in students if (serialize_student_profile(student["id"], data).get("profile_completeness") or 0) < 60]
+        if needs_review:
+            notifications.append(
+                build_notification_item(
+                    f"review-queue-{role}",
+                    "Review queue",
+                    f"{len(needs_review)} student profile(s) need attention.",
+                    "review",
+                    2,
+                )
+            )
+
+    reads = get_notification_reads(data).get(user_id, [])
+    for item in notifications:
+        item["read"] = item["id"] in reads
+
+    notifications.sort(key=lambda item: (item.get("priority", 2), item.get("title", "")))
+    return notifications
+
+
+def build_attendance_analytics(student_id: str, data: dict) -> dict:
+    logs = get_attendance_logs(data).get(student_id, [])
+    now = datetime.utcnow()
+    month_buckets = {}
+    total_hours = 0.0
+    completed_sessions = 0
+    last_active_days = []
+
+    for entry in logs:
+        check_in = parse_datetime_input(entry.get("check_in_at", ""))
+        if not check_in:
+            continue
+        check_out = parse_datetime_input(entry.get("check_out_at", "")) or now
+        if check_out <= check_in:
+            continue
+
+        duration = (check_out - check_in).total_seconds() / 3600.0
+        total_hours += duration
+        completed_sessions += 1
+        month_key = check_in.strftime("%Y-%m")
+        month_buckets[month_key] = round(month_buckets.get(month_key, 0.0) + duration, 2)
+        last_active_days.append(check_in.date())
+
+    streak = 0
+    day_cursor = now.date()
+    active_days = {day for day in last_active_days}
+    while day_cursor in active_days:
+        streak += 1
+        day_cursor -= timedelta(days=1)
+
+    recent_months = sorted(month_buckets.items(), reverse=True)[:3]
+    return {
+        "total_hours": round(total_hours, 2),
+        "completed_sessions": completed_sessions,
+        "current_streak_days": streak,
+        "monthly_hours": [{"month": key, "hours": value} for key, value in recent_months],
+    }
+
+
+def build_student_schedule_ics(user: dict, data: dict) -> str:
+    lines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//Holberton AZ//Datanist//EN",
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH",
+    ]
+
+    user_id = user.get("id", "")
+    role = user.get("role", "")
+
+    if role == "student":
+        interviews = [serialize_interview(interview, user_id) for interview in data.get("interviews", []) if interview.get("bookings", {}).get(user_id)]
+        events = [serialize_event(event, user_id) for event in data.get("events", []) if event.get("responses", {}).get(user_id) == "join"]
+
+        for interview in interviews:
+            dt = parse_date_value(interview.get("date", ""))
+            if not dt:
+                continue
+            start_time = interview.get("my_booking_time") or "09:00"
+            lines.extend([
+                "BEGIN:VEVENT",
+                f"UID:interview-{interview['id']}@holberton.az",
+                f"DTSTAMP:{datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')}",
+                f"SUMMARY:{interview['title']}",
+                f"DTSTART:{dt.strftime('%Y%m%d')}T{start_time.replace(':', '')}00",
+                "END:VEVENT",
+            ])
+
+        for event in events:
+            dt = parse_date_value(event.get("date", ""))
+            if not dt:
+                continue
+            time_value = event.get("time") or "09:00"
+            lines.extend([
+                "BEGIN:VEVENT",
+                f"UID:event-{event['id']}@holberton.az",
+                f"DTSTAMP:{datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')}",
+                f"SUMMARY:{event['name']}",
+                f"DTSTART:{dt.strftime('%Y%m%d')}T{time_value.replace(':', '')}00",
+                "END:VEVENT",
+            ])
+    else:
+        interviews = [serialize_interview(interview, user_id) for interview in data.get("interviews", []) if interview.get("created_by") == user_id]
+        events = [serialize_event(event, user_id) for event in data.get("events", []) if event.get("created_by") == user_id]
+
+        for interview in interviews:
+            dt = parse_date_value(interview.get("date", ""))
+            if not dt:
+                continue
+            time_value = (interview.get("time_options") or ["09:00"])[0]
+            lines.extend([
+                "BEGIN:VEVENT",
+                f"UID:interview-{interview['id']}@holberton.az",
+                f"DTSTAMP:{datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')}",
+                f"SUMMARY:{interview['title']}",
+                f"DTSTART:{dt.strftime('%Y%m%d')}T{time_value.replace(':', '')}00",
+                "END:VEVENT",
+            ])
+
+        for event in events:
+            dt = parse_date_value(event.get("date", ""))
+            if not dt:
+                continue
+            time_value = event.get("time") or "09:00"
+            lines.extend([
+                "BEGIN:VEVENT",
+                f"UID:event-{event['id']}@holberton.az",
+                f"DTSTAMP:{datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')}",
+                f"SUMMARY:{event['name']}",
+                f"DTSTART:{dt.strftime('%Y%m%d')}T{time_value.replace(':', '')}00",
+                "END:VEVENT",
+            ])
+
+    lines.append("END:VCALENDAR")
+    return "\r\n".join(lines)
+
+
 def build_students_leaderboard(data: dict) -> list[dict]:
     exams = data.get("exams", [])
     exam_count = len(exams)
@@ -1103,6 +1395,17 @@ def student_attendance_checkout():
     return jsonify({"ok": True, "message": "Check-out saved.", "attendance": attendance})
 
 
+@app.get("/api/student/attendance/analytics")
+def student_attendance_analytics():
+    user = require_role("student")
+    if not user:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    data = load_data()
+    analytics = build_attendance_analytics(user["id"], data)
+    return jsonify({"ok": True, "analytics": analytics})
+
+
 @app.post("/api/student/profile")
 def update_student_profile():
     user = require_role("student")
@@ -1235,13 +1538,28 @@ def submit_exam(exam_id: str):
     total = len(exam.get("questions", []))
     score = 0
     wrong_questions = []
+    question_review = []
 
     for question in exam.get("questions", []):
         selected = answers.get(question["id"])
-        if selected == question["correct_option"]:
+        correct_option = int(question["correct_option"])
+        selected_index = int(selected) if selected is not None and str(selected).strip() != "" else None
+        if selected_index == correct_option:
             score += 1
         else:
             wrong_questions.append(question["text"])
+
+        question_review.append(
+            {
+                "question_id": question["id"],
+                "question": question["text"],
+                "selected_index": selected_index,
+                "selected_text": question["options"][selected_index] if selected_index is not None and selected_index < len(question["options"]) else "No answer selected",
+                "correct_index": correct_option,
+                "correct_text": question["options"][correct_option],
+                "is_correct": selected_index == correct_option,
+            }
+        )
 
     if score == total:
         analysis = {
@@ -1257,6 +1575,7 @@ def submit_exam(exam_id: str):
         "wrong_questions": wrong_questions,
         "weak_topics": analysis["weak_topics"],
         "learning_plan": analysis["learning_plan"],
+        "question_review": question_review,
         "submitted_at": datetime.utcnow().isoformat() + "Z",
     }
     save_data(data)
@@ -1269,9 +1588,52 @@ def submit_exam(exam_id: str):
             "wrong_questions": wrong_questions,
             "weak_topics": analysis["weak_topics"],
             "learning_plan": analysis["learning_plan"],
+            "question_review": question_review,
             "congratulations": score == total,
         }
     )
+
+
+@app.get("/api/notifications")
+def list_notifications():
+    user = get_current_user()
+    if not user:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    data = load_data()
+    notifications = build_user_notifications(user, data)
+    unread_count = sum(1 for item in notifications if not item.get("read"))
+    return jsonify({"ok": True, "notifications": notifications, "unread_count": unread_count})
+
+
+@app.post("/api/notifications/<notification_id>/read")
+def mark_notification_read(notification_id: str):
+    user = get_current_user()
+    if not user:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    data = load_data()
+    reads = get_notification_reads(data).setdefault(user["id"], [])
+    if notification_id not in reads:
+        reads.append(notification_id)
+        save_data(data)
+
+    return jsonify({"ok": True})
+
+
+@app.get("/api/calendar/export")
+def export_calendar_ics():
+    user = get_current_user()
+    if not user:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    data = load_data()
+    ics_text = build_student_schedule_ics(user, data)
+    filename = f"holberton-calendar-{user['id']}.ics"
+    return ics_text, 200, {
+        "Content-Type": "text/calendar; charset=utf-8",
+        "Content-Disposition": f'attachment; filename="{filename}"',
+    }
 
 
 @app.post("/api/mentor/exams")

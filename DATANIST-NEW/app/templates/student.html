@@ -84,6 +84,7 @@
       </div>
 
       <div class="stack" id="attendance-week-sessions"></div>
+      <div class="stack" id="student-attendance-analytics"></div>
     </section>
 
     <section class="card dashboard-panel" id="student-career">
@@ -132,7 +133,10 @@
     </section>
 
     <section class="card dashboard-panel" id="student-calendar">
-      <h3>Calendar</h3>
+      <div class="row between exam-page-header">
+        <h3>Calendar</h3>
+        <a class="btn btn-secondary" href="{{ url_for('export_calendar_ics') }}">Export Calendar</a>
+      </div>
       <div class="calendar-toolbar">
         <label for="student-calendar-month-filter">Month view</label>
         <select id="student-calendar-month-filter"></select>
@@ -156,6 +160,10 @@
       <div>
         <h4>Gemini Personalized Learning Plan</h4>
         <pre id="learning-plan" class="plan"></pre>
+      </div>
+      <div>
+        <h4>Question Review</h4>
+        <div id="exam-review-list" class="stack"></div>
       </div>
     </section>
   </div>
