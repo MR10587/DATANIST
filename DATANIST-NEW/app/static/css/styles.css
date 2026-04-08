@@ -25,6 +25,10 @@ body {
     radial-gradient(circle at 15% 15%, rgba(225, 0, 60, 0.14), transparent 38%),
     radial-gradient(circle at 85% 0%, rgba(180, 0, 48, 0.1), transparent 34%),
     var(--bg);
+}
+
+p,
+li {
   line-height: 1.5;
 }
 
@@ -81,6 +85,7 @@ label {
 }
 
 input,
+select,
 textarea {
   width: 100%;
   padding: 11px 12px;
@@ -97,6 +102,7 @@ textarea {
 }
 
 input:focus,
+select:focus,
 textarea:focus {
   outline: none;
   border-color: var(--brand);
