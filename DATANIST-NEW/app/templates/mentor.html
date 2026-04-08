@@ -45,6 +45,12 @@
         <label>Exam Topic</label>
         <input id="exam-topic" required />
 
+        <label>Exam Requirements (What students must revise before exam)</label>
+        <textarea id="exam-requirements" rows="5" placeholder="Example:
+      1) Review Flask routing and decorators
+      2) Solve at least 10 practice questions
+      3) Repeat OOP basics and class design"></textarea>
+
         <label>Question Count</label>
         <input id="question-count" type="number" min="1" value="2" required />
 
@@ -53,6 +59,8 @@
         <button type="submit" class="btn">Save Exam</button>
         <p id="mentor-exam-message" class="muted"></p>
       </form>
+
+      <div class="stack" id="mentor-exam-requirements-list"></div>
     </section>
 
     <section class="card" id="mentor-review">

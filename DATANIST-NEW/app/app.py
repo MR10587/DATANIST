@@ -731,6 +731,7 @@ def student_exams():
                 "id": exam["id"],
                 "name": exam["name"],
                 "topic": exam["topic"],
+                "requirements": exam.get("requirements", ""),
                 "question_count": len(exam.get("questions", [])),
                 "attempted": score_data is not None,
                 "score": score_data.get("score") if score_data else None,
@@ -763,6 +764,7 @@ def student_exam_detail(exam_id: str):
         "id": exam["id"],
         "name": exam["name"],
         "topic": exam["topic"],
+        "requirements": exam.get("requirements", ""),
         "questions": [
             {
                 "id": q["id"],
@@ -845,6 +847,7 @@ def create_exam():
 
     name = payload.get("name", "").strip()
     topic = payload.get("topic", "").strip()
+    requirements = payload.get("requirements", "").strip()
     questions = payload.get("questions", [])
 
     if not name or not topic or not questions:
@@ -882,6 +885,7 @@ def create_exam():
             "id": exam_id,
             "name": name,
             "topic": topic,
+            "requirements": requirements,
             "created_by": user["id"],
             "questions": normalized_questions,
         }
@@ -889,6 +893,51 @@ def create_exam():
     save_data(data)
 
     return jsonify({"ok": True, "exam_id": exam_id})
+
+
+@app.get("/api/mentor/exams")
+def list_mentor_exams():
+    user = require_role("mentor")
+    if not user:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    data = load_data()
+    exams = [
+        {
+            "id": exam["id"],
+            "name": exam.get("name", ""),
+            "topic": exam.get("topic", ""),
+            "requirements": exam.get("requirements", ""),
+            "question_count": len(exam.get("questions", [])),
+        }
+        for exam in data.get("exams", [])
+        if exam.get("created_by") == user["id"]
+    ]
+    return jsonify({"ok": True, "exams": exams})
+
+
+@app.post("/api/mentor/exams/<exam_id>/requirements")
+def update_exam_requirements(exam_id: str):
+    user = require_role("mentor")
+    if not user:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    payload = request.get_json(silent=True) or {}
+    requirements = str(payload.get("requirements", "")).strip()
+
+    data = load_data()
+    exam = next(
+        (item for item in data.get("exams", []) if item.get("id") == exam_id and item.get("created_by") == user["id"]),
+        None,
+    )
+    if not exam:
+        return jsonify({"ok": False, "message": "Exam not found."}), 404
+
+    exam["requirements"] = requirements
+    exam["requirements_updated_at"] = datetime.utcnow().isoformat() + "Z"
+    save_data(data)
+
+    return jsonify({"ok": True, "message": "Requirements updated.", "requirements": requirements})
 
 
 @app.get("/api/mentor/students")
