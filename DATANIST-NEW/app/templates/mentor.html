@@ -1,106 +1,124 @@
 {% extends 'base.html' %}
 {% block title %}Mentor Dashboard{% endblock %}
 {% block content %}
-<section class="card">
-  <h2>Mentor Dashboard</h2>
-  <p>Welcome, {{ user.name }}.</p>
-</section>
+<div class="dashboard-layout">
+  <aside class="card section-sidebar">
+    <h3>Navigate</h3>
+    <nav class="sidebar-nav" aria-label="Mentor dashboard sections">
+      <a href="#mentor-overview">Overview</a>
+      <a href="#mentor-notifications">Notifications</a>
+      <a href="#mentor-analytics">Analytics</a>
+      <a href="#mentor-exams">Exam Section</a>
+      <a href="#mentor-review">Review Panel</a>
+      <a href="#mentor-interviews">Interview Section</a>
+      <a href="#mentor-calendar">Calendar</a>
+      <a href="#mentor-events">Event Section</a>
+    </nav>
+  </aside>
 
-<section class="card">
-  <h3>Notifications</h3>
-  <div id="mentor-notification-list" class="stack"></div>
-</section>
+  <div class="dashboard-sections">
+    <section class="card" id="mentor-overview">
+      <h2>Mentor Dashboard</h2>
+      <p>Welcome, {{ user.name }}.</p>
+    </section>
 
-<section class="card">
-  <h3>Analytics</h3>
-  <div id="mentor-analytics-list"></div>
-</section>
+    <section class="card" id="mentor-notifications">
+      <h3>Notifications</h3>
+      <div id="mentor-notification-list" class="stack"></div>
+    </section>
 
-<section class="card">
-  <div class="row between">
-    <h3>Exam Section</h3>
-    <button id="new-exam-btn" class="btn">Create New Exam</button>
+    <section class="card" id="mentor-analytics">
+      <h3>Analytics</h3>
+      <div id="mentor-analytics-list"></div>
+    </section>
+
+    <section class="card" id="mentor-exams">
+      <div class="row between">
+        <h3>Exam Section</h3>
+        <button id="new-exam-btn" class="btn">Create New Exam</button>
+      </div>
+
+      <form id="new-exam-form" class="stack hidden">
+        <label>Exam Name</label>
+        <input id="exam-name" required />
+
+        <label>Exam Topic</label>
+        <input id="exam-topic" required />
+
+        <label>Question Count</label>
+        <input id="question-count" type="number" min="1" value="2" required />
+
+        <button type="button" id="generate-questions" class="btn btn-secondary">Generate Question Forms</button>
+        <div id="questions-container" class="stack"></div>
+        <button type="submit" class="btn">Save Exam</button>
+        <p id="mentor-exam-message" class="muted"></p>
+      </form>
+    </section>
+
+    <section class="card" id="mentor-review">
+      <h3>Review Panel</h3>
+      <p class="muted">Click a student to expand profile, exam, and CV details.</p>
+      <div id="mentor-students" class="stack"></div>
+    </section>
+
+    <section class="card" id="mentor-interviews">
+      <div class="row between">
+        <h3>Interview Section</h3>
+        <button id="new-interview-btn" class="btn">Create Interview</button>
+      </div>
+
+      <form id="new-interview-form" class="stack hidden">
+        <label>Interview Title</label>
+        <input id="interview-title" placeholder="Frontend Interview" required />
+
+        <label>Interview Date</label>
+        <input id="interview-date" type="text" placeholder="dd.mm.yyyy" required />
+
+        <button type="button" id="generate-time-options" class="btn btn-secondary">Add Time Options</button>
+        <button type="button" id="add-time-option" class="btn btn-secondary">Add Another Time</button>
+        <div id="time-options-container" class="stack"></div>
+        <button type="submit" class="btn">Save Interview</button>
+        <p id="mentor-interview-message" class="muted"></p>
+      </form>
+
+      <div class="stack" id="mentor-interview-list"></div>
+    </section>
+
+    <section class="card" id="mentor-calendar">
+      <h3>Calendar</h3>
+      <div class="calendar-toolbar">
+        <label for="mentor-calendar-month-filter">Month view</label>
+        <select id="mentor-calendar-month-filter"></select>
+        <p id="mentor-calendar-summary" class="muted"></p>
+      </div>
+      <div id="mentor-calendar-list" class="stack"></div>
+    </section>
+
+    <section class="card" id="mentor-events">
+      <div class="row between">
+        <h3>Event Section</h3>
+        <button id="new-event-btn" class="btn">Create Event</button>
+      </div>
+
+      <form id="new-event-form" class="stack hidden">
+        <label>Event Name</label>
+        <input id="mentor-event-name" required />
+
+        <label>Event Description</label>
+        <input id="mentor-event-description" required />
+
+        <label>Event Date</label>
+        <input id="mentor-event-date" type="text" placeholder="dd.mm.yyyy" required />
+
+        <label>Event Time</label>
+        <input id="mentor-event-time" type="time" required />
+
+        <button type="submit" class="btn">Save Event</button>
+        <p id="mentor-event-message" class="muted"></p>
+      </form>
+
+      <div id="mentor-event-list" class="stack"></div>
+    </section>
   </div>
-
-  <form id="new-exam-form" class="stack hidden">
-    <label>Exam Name</label>
-    <input id="exam-name" required />
-
-    <label>Exam Topic</label>
-    <input id="exam-topic" required />
-
-    <label>Question Count</label>
-    <input id="question-count" type="number" min="1" value="2" required />
-
-    <button type="button" id="generate-questions" class="btn btn-secondary">Generate Question Forms</button>
-    <div id="questions-container" class="stack"></div>
-    <button type="submit" class="btn">Save Exam</button>
-    <p id="mentor-exam-message" class="muted"></p>
-  </form>
-</section>
-
-<section class="card">
-  <h3>Review Panel</h3>
-  <p class="muted">Click a student to expand profile, exam, and CV details.</p>
-  <div id="mentor-students" class="stack"></div>
-</section>
-
-<section class="card">
-  <div class="row between">
-    <h3>Interview Section</h3>
-    <button id="new-interview-btn" class="btn">Create Interview</button>
-  </div>
-
-  <form id="new-interview-form" class="stack hidden">
-    <label>Interview Title</label>
-    <input id="interview-title" placeholder="Frontend Interview" required />
-
-    <label>Interview Date</label>
-    <input id="interview-date" type="text" placeholder="dd.mm.yyyy" required />
-
-    <button type="button" id="generate-time-options" class="btn btn-secondary">Add Time Options</button>
-    <button type="button" id="add-time-option" class="btn btn-secondary">Add Another Time</button>
-    <div id="time-options-container" class="stack"></div>
-    <button type="submit" class="btn">Save Interview</button>
-    <p id="mentor-interview-message" class="muted"></p>
-  </form>
-
-  <div class="stack" id="mentor-interview-list"></div>
-</section>
-
-<section class="card">
-  <h3>Calendar</h3>
-  <div class="calendar-toolbar">
-    <label for="mentor-calendar-month-filter">Month view</label>
-    <select id="mentor-calendar-month-filter"></select>
-    <p id="mentor-calendar-summary" class="muted"></p>
-  </div>
-  <div id="mentor-calendar-list" class="stack"></div>
-</section>
-
-<section class="card">
-  <div class="row between">
-    <h3>Event Section</h3>
-    <button id="new-event-btn" class="btn">Create Event</button>
-  </div>
-
-  <form id="new-event-form" class="stack hidden">
-    <label>Event Name</label>
-    <input id="mentor-event-name" required />
-
-    <label>Event Description</label>
-    <input id="mentor-event-description" required />
-
-    <label>Event Date</label>
-    <input id="mentor-event-date" type="text" placeholder="dd.mm.yyyy" required />
-
-    <label>Event Time</label>
-    <input id="mentor-event-time" type="time" required />
-
-    <button type="submit" class="btn">Save Event</button>
-    <p id="mentor-event-message" class="muted"></p>
-  </form>
-
-  <div id="mentor-event-list" class="stack"></div>
-</section>
+</div>
 {% endblock %}

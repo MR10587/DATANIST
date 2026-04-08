@@ -1,83 +1,100 @@
 {% extends 'base.html' %}
 {% block title %}SSM Dashboard{% endblock %}
 {% block content %}
-<section class="card">
-  <h2>SSM Dashboard</h2>
-  <p>This page is currently empty.</p>
-</section>
+<div class="dashboard-layout">
+  <aside class="card section-sidebar">
+    <h3>Navigate</h3>
+    <nav class="sidebar-nav" aria-label="SSM dashboard sections">
+      <a href="#ssm-overview">Overview</a>
+      <a href="#ssm-notifications">Notifications</a>
+      <a href="#ssm-analytics">Analytics</a>
+      <a href="#ssm-review">Review Panel</a>
+      <a href="#ssm-interviews">Interview Section</a>
+      <a href="#ssm-calendar">Calendar</a>
+      <a href="#ssm-events">Event Section</a>
+    </nav>
+  </aside>
 
-<section class="card">
-  <h3>Notifications</h3>
-  <div id="ssm-notification-list" class="stack"></div>
-</section>
+  <div class="dashboard-sections">
+    <section class="card" id="ssm-overview">
+      <h2>SSM Dashboard</h2>
+      <p>This page is currently empty.</p>
+    </section>
 
-<section class="card">
-  <h3>Analytics</h3>
-  <div id="ssm-analytics-list"></div>
-</section>
+    <section class="card" id="ssm-notifications">
+      <h3>Notifications</h3>
+      <div id="ssm-notification-list" class="stack"></div>
+    </section>
 
-<section class="card">
-  <h3>Review Panel</h3>
-  <p class="muted">Click a student to expand profile, exam, and CV details.</p>
-  <div id="ssm-students" class="stack"></div>
-</section>
+    <section class="card" id="ssm-analytics">
+      <h3>Analytics</h3>
+      <div id="ssm-analytics-list"></div>
+    </section>
 
-<section class="card">
-  <div class="row between">
-    <h3>Interview Section</h3>
-    <button id="new-ssm-interview-btn" class="btn">Create Interview</button>
+    <section class="card" id="ssm-review">
+      <h3>Review Panel</h3>
+      <p class="muted">Click a student to expand profile, exam, and CV details.</p>
+      <div id="ssm-students" class="stack"></div>
+    </section>
+
+    <section class="card" id="ssm-interviews">
+      <div class="row between">
+        <h3>Interview Section</h3>
+        <button id="new-ssm-interview-btn" class="btn">Create Interview</button>
+      </div>
+
+      <form id="new-ssm-interview-form" class="stack hidden">
+        <label>Interview Title</label>
+        <input id="ssm-interview-title" placeholder="Student Success Interview" required />
+
+        <label>Interview Date</label>
+        <input id="ssm-interview-date" type="text" placeholder="dd.mm.yyyy" required />
+
+        <button type="button" id="generate-ssm-time-options" class="btn btn-secondary">Add Time Options</button>
+        <button type="button" id="add-ssm-time-option" class="btn btn-secondary">Add Another Time</button>
+        <div id="ssm-time-options-container" class="stack"></div>
+        <button type="submit" class="btn">Save Interview</button>
+        <p id="ssm-interview-message" class="muted"></p>
+      </form>
+
+      <div class="stack" id="ssm-interview-list"></div>
+    </section>
+
+    <section class="card" id="ssm-calendar">
+      <h3>Calendar</h3>
+      <div class="calendar-toolbar">
+        <label for="ssm-calendar-month-filter">Month view</label>
+        <select id="ssm-calendar-month-filter"></select>
+        <p id="ssm-calendar-summary" class="muted"></p>
+      </div>
+      <div id="ssm-calendar-list" class="stack"></div>
+    </section>
+
+    <section class="card" id="ssm-events">
+      <div class="row between">
+        <h3>Event Section</h3>
+        <button id="new-ssm-event-btn" class="btn">Create Event</button>
+      </div>
+
+      <form id="new-ssm-event-form" class="stack hidden">
+        <label>Event Name</label>
+        <input id="ssm-event-name" required />
+
+        <label>Event Description</label>
+        <input id="ssm-event-description" required />
+
+        <label>Event Date</label>
+        <input id="ssm-event-date" type="text" placeholder="dd.mm.yyyy" required />
+
+        <label>Event Time</label>
+        <input id="ssm-event-time" type="time" required />
+
+        <button type="submit" class="btn">Save Event</button>
+        <p id="ssm-event-message" class="muted"></p>
+      </form>
+
+      <div id="ssm-event-list" class="stack"></div>
+    </section>
   </div>
-
-  <form id="new-ssm-interview-form" class="stack hidden">
-    <label>Interview Title</label>
-    <input id="ssm-interview-title" placeholder="Student Success Interview" required />
-
-    <label>Interview Date</label>
-    <input id="ssm-interview-date" type="text" placeholder="dd.mm.yyyy" required />
-
-    <button type="button" id="generate-ssm-time-options" class="btn btn-secondary">Add Time Options</button>
-    <button type="button" id="add-ssm-time-option" class="btn btn-secondary">Add Another Time</button>
-    <div id="ssm-time-options-container" class="stack"></div>
-    <button type="submit" class="btn">Save Interview</button>
-    <p id="ssm-interview-message" class="muted"></p>
-  </form>
-
-  <div class="stack" id="ssm-interview-list"></div>
-</section>
-
-<section class="card">
-  <h3>Calendar</h3>
-  <div class="calendar-toolbar">
-    <label for="ssm-calendar-month-filter">Month view</label>
-    <select id="ssm-calendar-month-filter"></select>
-    <p id="ssm-calendar-summary" class="muted"></p>
-  </div>
-  <div id="ssm-calendar-list" class="stack"></div>
-</section>
-
-<section class="card">
-  <div class="row between">
-    <h3>Event Section</h3>
-    <button id="new-ssm-event-btn" class="btn">Create Event</button>
-  </div>
-
-  <form id="new-ssm-event-form" class="stack hidden">
-    <label>Event Name</label>
-    <input id="ssm-event-name" required />
-
-    <label>Event Description</label>
-    <input id="ssm-event-description" required />
-
-    <label>Event Date</label>
-    <input id="ssm-event-date" type="text" placeholder="dd.mm.yyyy" required />
-
-    <label>Event Time</label>
-    <input id="ssm-event-time" type="time" required />
-
-    <button type="submit" class="btn">Save Event</button>
-    <p id="ssm-event-message" class="muted"></p>
-  </form>
-
-  <div id="ssm-event-list" class="stack"></div>
-</section>
+</div>
 {% endblock %}

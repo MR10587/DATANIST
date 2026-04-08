@@ -1,89 +1,108 @@
 {% extends 'base.html' %}
 {% block title %}Student Dashboard{% endblock %}
 {% block content %}
-<section class="card">
-  <h2>Student Dashboard</h2>
-  <p>Welcome, {{ user.name }}.</p>
-</section>
+<div class="dashboard-layout">
+  <aside class="card section-sidebar">
+    <h3>Navigate</h3>
+    <nav class="sidebar-nav" aria-label="Student dashboard sections">
+      <a href="#student-overview">Overview</a>
+      <a href="#student-exams">Exams</a>
+      <a href="#student-notifications">Notifications</a>
+      <a href="#student-analytics">Analytics</a>
+      <a href="#student-analyses">Exam Analyses</a>
+      <a href="#student-profile">Profile</a>
+      <a href="#student-interviews">Interview Slots</a>
+      <a href="#student-events">Events</a>
+      <a href="#student-calendar">Calendar</a>
+    </nav>
+  </aside>
 
-<section class="card" id="student-exams">
-  <h3>Exams</h3>
-  <div id="exam-list" class="stack"></div>
-</section>
+  <div class="dashboard-sections">
+    <section class="card" id="student-overview">
+      <h2>Student Dashboard</h2>
+      <p>Welcome, {{ user.name }}.</p>
+    </section>
 
-<section class="card" id="student-notifications">
-  <h3>Notifications</h3>
-  <div id="student-notification-list" class="stack"></div>
-</section>
+    <section class="card" id="student-exams">
+      <h3>Exams</h3>
+      <div id="exam-list" class="stack"></div>
+    </section>
 
-<section class="card" id="student-analytics">
-  <h3>Dashboard Analytics</h3>
-  <div id="student-analytics-list"></div>
-</section>
+    <section class="card" id="student-notifications">
+      <h3>Notifications</h3>
+      <div id="student-notification-list" class="stack"></div>
+    </section>
 
-<section class="card" id="student-analyses">
-  <h3>Exam Analyses</h3>
-  <div id="analysis-list" class="stack"></div>
-</section>
+    <section class="card" id="student-analytics">
+      <h3>Dashboard Analytics</h3>
+      <div id="student-analytics-list"></div>
+    </section>
 
-<section class="card" id="student-profile">
-  <h3>Profile</h3>
-  <form id="student-profile-form" class="stack" enctype="multipart/form-data">
-    <label>Upload CV (PDF, DOC, DOCX)</label>
-    <input id="student-cv-file" name="cv_file" type="file" accept=".pdf,.doc,.docx" />
-    <p id="student-cv-current" class="muted"></p>
-    <p id="student-profile-meta" class="muted"></p>
+    <section class="card" id="student-analyses">
+      <h3>Exam Analyses</h3>
+      <div id="analysis-list" class="stack"></div>
+    </section>
 
-    <div class="stack">
-      <strong>Profile Notes</strong>
-      <ul id="student-profile-notes" class="stack compact-list"></ul>
-    </div>
+    <section class="card" id="student-profile">
+      <h3>Profile</h3>
+      <form id="student-profile-form" class="stack" enctype="multipart/form-data">
+        <label>Upload CV (PDF, DOC, DOCX)</label>
+        <input id="student-cv-file" name="cv_file" type="file" accept=".pdf,.doc,.docx" />
+        <p id="student-cv-current" class="muted"></p>
+        <p id="student-profile-meta" class="muted"></p>
 
-    <p id="student-cv-keywords" class="muted"></p>
-    <p id="student-cv-excerpt" class="muted"></p>
+        <div class="stack">
+          <strong>Profile Notes</strong>
+          <ul id="student-profile-notes" class="stack compact-list"></ul>
+        </div>
 
-    <label>Motivation Letter</label>
-    <textarea id="student-motivation-letter" name="motivation_letter" rows="6" placeholder="Write your motivation letter..."></textarea>
+        <p id="student-cv-keywords" class="muted"></p>
+        <p id="student-cv-excerpt" class="muted"></p>
 
-    <button type="submit" class="btn">Save Profile</button>
-    <p id="student-profile-message" class="muted"></p>
-  </form>
-</section>
+        <label>Motivation Letter</label>
+        <textarea id="student-motivation-letter" name="motivation_letter" rows="6" placeholder="Write your motivation letter..."></textarea>
 
-<section class="card" id="student-interviews">
-  <h3>Interview Slots</h3>
-  <div id="student-interview-list" class="stack"></div>
-</section>
+        <button type="submit" class="btn">Save Profile</button>
+        <p id="student-profile-message" class="muted"></p>
+      </form>
+    </section>
 
-<section class="card" id="student-events">
-  <h3>Events</h3>
-  <div id="student-event-list" class="stack"></div>
-</section>
+    <section class="card" id="student-interviews">
+      <h3>Interview Slots</h3>
+      <div id="student-interview-list" class="stack"></div>
+    </section>
 
-<section class="card" id="student-calendar">
-  <h3>Calendar</h3>
-  <div class="calendar-toolbar">
-    <label for="student-calendar-month-filter">Month view</label>
-    <select id="student-calendar-month-filter"></select>
-    <p id="student-calendar-summary" class="muted"></p>
+    <section class="card" id="student-events">
+      <h3>Events</h3>
+      <div id="student-event-list" class="stack"></div>
+    </section>
+
+    <section class="card" id="student-calendar">
+      <h3>Calendar</h3>
+      <div class="calendar-toolbar">
+        <label for="student-calendar-month-filter">Month view</label>
+        <select id="student-calendar-month-filter"></select>
+        <p id="student-calendar-summary" class="muted"></p>
+      </div>
+      <div id="student-calendar-list" class="stack"></div>
+    </section>
+
+    <section class="card hidden" id="exam-attempt">
+      <h3 id="exam-title"></h3>
+      <form id="exam-form" class="stack"></form>
+      <button id="submit-exam" class="btn">Submit Exam</button>
+    </section>
+
+    <section class="card hidden" id="exam-result">
+      <h3>Result</h3>
+      <p id="score-text"></p>
+      <p id="result-message" class="muted"></p>
+      <p id="weak-topics" class="muted"></p>
+      <div>
+        <h4>Gemini Personalized Learning Plan</h4>
+        <pre id="learning-plan" class="plan"></pre>
+      </div>
+    </section>
   </div>
-  <div id="student-calendar-list" class="stack"></div>
-</section>
-
-<section class="card hidden" id="exam-attempt">
-  <h3 id="exam-title"></h3>
-  <form id="exam-form" class="stack"></form>
-  <button id="submit-exam" class="btn">Submit Exam</button>
-</section>
-
-<section class="card hidden" id="exam-result">
-  <h3>Result</h3>
-  <p id="score-text"></p>
-  <p id="result-message" class="muted"></p>
-  <p id="weak-topics" class="muted"></p>
-  <div>
-    <h4>Gemini Personalized Learning Plan</h4>
-    <pre id="learning-plan" class="plan"></pre>
-  </div>
-</section>
+</div>
 {% endblock %}
