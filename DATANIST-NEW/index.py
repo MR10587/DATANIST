@@ -1,6 +1,6 @@
 """
 WSGI entry point for Vercel deployment.
-This file is required for serverless Flask deployment on Vercel.
+Vercel automatically detects the app variable.
 """
 
 import sys
@@ -9,15 +9,9 @@ from pathlib import Path
 # Ensure the app module can be imported
 sys.path.insert(0, str(Path(__file__).parent))
 
-try:
-    from app.app import app
-except ImportError as e:
-    print(f"ERROR: Failed to import app: {e}")
-    raise
+# Import the Flask app for Vercel
+from app.app import app
 
-# Export the app for Vercel
+# This is what Vercel looks for
 __all__ = ["app"]
 
-
-if __name__ == "__main__":
-    app.run()
