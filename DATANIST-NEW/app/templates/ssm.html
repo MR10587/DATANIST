@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}SSM Dashboard{% endblock %}
+{% block content %}
+<section class="card">
+  <h2>SSM Dashboard</h2>
+  <p>This page is currently empty.</p>
+</section>
+
+<section class="card">
+  <div class="row between">
+    <h3>Interview Section</h3>
+    <button id="new-ssm-interview-btn" class="btn">Create Interview</button>
+  </div>
+
+  <form id="new-ssm-interview-form" class="stack hidden">
+    <label>Interview Title</label>
+    <input id="ssm-interview-title" placeholder="Student Success Interview" required />
+
+    <label>Interview Date</label>
+    <input id="ssm-interview-date" type="text" placeholder="dd.mm.yyyy" required />
+
+    <button type="button" id="generate-ssm-time-options" class="btn btn-secondary">Add Time Options</button>
+    <button type="button" id="add-ssm-time-option" class="btn btn-secondary">Add Another Time</button>
+    <div id="ssm-time-options-container" class="stack"></div>
+    <button type="submit" class="btn">Save Interview</button>
+    <p id="ssm-interview-message" class="muted"></p>
+  </form>
+
+  <div class="stack" id="ssm-interview-list"></div>
+</section>
+
+<section class="card">
+  <h3>Calendar</h3>
+  <div id="ssm-calendar-list" class="stack"></div>
+</section>
+
+<section class="card">
+  <div class="row between">
+    <h3>Event Section</h3>
+    <button id="new-ssm-event-btn" class="btn">Create Event</button>
+  </div>
+
+  <form id="new-ssm-event-form" class="stack hidden">
+    <label>Event Name</label>
+    <input id="ssm-event-name" required />
+
+    <label>Event Description</label>
+    <input id="ssm-event-description" required />
+
+    <label>Event Date</label>
+    <input id="ssm-event-date" type="text" placeholder="dd.mm.yyyy" required />
+
+    <label>Event Time</label>
+    <input id="ssm-event-time" type="time" required />
+
+    <button type="submit" class="btn">Save Event</button>
+    <p id="ssm-event-message" class="muted"></p>
+  </form>
+
+  <div id="ssm-event-list" class="stack"></div>
+</section>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Student Dashboard{% endblock %}
+{% block content %}
+<section class="card">
+  <h2>Student Dashboard</h2>
+  <p>Welcome, {{ user.name }}.</p>
+</section>
+
+<section class="card" id="student-exams">
+  <h3>Exams</h3>
+  <div id="exam-list" class="stack"></div>
+</section>
+
+<section class="card" id="student-analyses">
+  <h3>Exam Analyses</h3>
+  <div id="analysis-list" class="stack"></div>
+</section>
+
+<section class="card" id="student-interviews">
+  <h3>Interview Slots</h3>
+  <div id="student-interview-list" class="stack"></div>
+</section>
+
+<section class="card" id="student-events">
+  <h3>Events</h3>
+  <div id="student-event-list" class="stack"></div>
+</section>
+
+<section class="card" id="student-calendar">
+  <h3>Calendar</h3>
+  <div id="student-calendar-list" class="stack"></div>
+</section>
+
+<section class="card hidden" id="exam-attempt">
+  <h3 id="exam-title"></h3>
+  <form id="exam-form" class="stack"></form>
+  <button id="submit-exam" class="btn">Submit Exam</button>
+</section>
+
+<section class="card hidden" id="exam-result">
+  <h3>Result</h3>
+  <p id="score-text"></p>
+  <p id="result-message" class="muted"></p>
+  <p id="weak-topics" class="muted"></p>
+  <div>
+    <h4>Gemini Personalized Learning Plan</h4>
+    <pre id="learning-plan" class="plan"></pre>
+  </div>
+</section>
+{% endblock %}

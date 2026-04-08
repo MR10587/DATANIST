@@ -1,0 +1,176 @@
+{
+  "users": [
+    {
+      "id": "mentor-1",
+      "name": "Mentor User",
+      "role": "mentor",
+      "email": "mentor@holberton.az",
+      "password": "Mentor123!"
+    },
+    {
+      "id": "student-1",
+      "name": "Student User",
+      "role": "student",
+      "email": "student@holberton.az",
+      "password": "Student123!"
+    },
+    {
+      "id": "ssm-1",
+      "name": "SSM User",
+      "role": "ssm",
+      "email": "ssm@holberton.az",
+      "password": "SSM123!"
+    }
+  ],
+  "exams": [
+    {
+      "id": "exam-1",
+      "name": "Python Fundamentals Quiz",
+      "topic": "Python Basics",
+      "created_by": "mentor-1",
+      "questions": [
+        {
+          "id": "q1",
+          "text": "What is list comprehension used for in Python?",
+          "options": [
+            "To create a file",
+            "To create a new list in a concise way",
+            "To restart a server",
+            "To only join strings"
+          ],
+          "correct_option": 1
+        },
+        {
+          "id": "q2",
+          "text": "Which decorator is used to define a route in Flask?",
+          "options": [
+            "@app.listen",
+            "@app.route",
+            "@flask.bind",
+            "@web.path"
+          ],
+          "correct_option": 1
+        }
+      ]
+    },
+    {
+      "id": "exam-2",
+      "name": "Javascript",
+      "topic": "DOM",
+      "created_by": "mentor-1",
+      "questions": [
+        {
+          "id": "q1",
+          "text": "How many grams of protein are in one walnut?",
+          "options": [
+            "5",
+            "6",
+            "11",
+            "12"
+          ],
+          "correct_option": 1
+        },
+        {
+          "id": "q2",
+          "text": "How old is Yalcin?",
+          "options": [
+            "12",
+            "2",
+            "4",
+            "67"
+          ],
+          "correct_option": 2
+        }
+      ]
+    },
+    {
+      "id": "exam-3",
+      "name": "Python",
+      "topic": "OOP",
+      "created_by": "mentor-1",
+      "questions": [
+        {
+          "id": "q1",
+          "text": "What is a class?",
+          "options": [
+            "A blueprint",
+            "Yalcin's shoe",
+            "A bag",
+            "A walnut"
+          ],
+          "correct_option": 0
+        },
+        {
+          "id": "q2",
+          "text": "How old is Yalcin?",
+          "options": [
+            "12",
+            "2",
+            "4",
+            "67"
+          ],
+          "correct_option": 2
+        }
+      ]
+    }
+  ],
+  "interviews": [
+    {
+      "id": "interview-1",
+      "title": "Interview on python",
+      "date": "2026-04-09",
+      "created_by": "ssm-1",
+      "created_by_role": "ssm",
+      "time_options": [
+        "12:00",
+        "15:00",
+        "18:30"
+      ],
+      "bookings": {
+        "student-1": "15:00"
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "event-1",
+      "name": "CODENAMES",
+      "description": "INTERACTIVE GAME",
+      "date": "2026-04-09",
+      "time": "18:00",
+      "created_by": "mentor-1",
+      "created_by_role": "mentor",
+      "responses": {
+        "student-1": "join"
+      }
+    }
+  ],
+  "scores": {
+    "student-1": {
+      "exam-1": {
+        "score": 2,
+        "total": 2,
+        "wrong_questions": [],
+        "weak_topics": [],
+        "learning_plan": "Congratulations! You got a perfect score. Keep practicing to maintain your level.",
+        "submitted_at": "2026-04-08T13:59:12.670277Z"
+      },
+      "exam-2": {
+        "score": 2,
+        "total": 2,
+        "wrong_questions": [],
+        "weak_topics": [],
+        "learning_plan": "Congratulations! You got a perfect score. Keep practicing to maintain your level.",
+        "submitted_at": "2026-04-08T13:59:41.676680Z"
+      },
+      "exam-3": {
+        "score": 2,
+        "total": 2,
+        "wrong_questions": [],
+        "weak_topics": [],
+        "learning_plan": "Congratulations! You got a perfect score. Keep practicing to maintain your level.",
+        "submitted_at": "2026-04-08T13:59:52.633640Z"
+      }
+    }
+  }
+}
