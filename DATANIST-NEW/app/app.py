@@ -5,12 +5,15 @@ from pathlib import Path
 
 import requests
 from dotenv import load_dotenv
-from flask import Flask, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, jsonify, redirect, render_template, request, send_from_directory, session, url_for
+from werkzeug.utils import secure_filename
 
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_FILE = BASE_DIR / "data" / "seed_data.json"
+UPLOAD_DIR = BASE_DIR / "uploads" / "cv"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "holberton-datanist-dev-secret")
@@ -230,6 +233,22 @@ def serialize_event(event: dict, current_user_id: str | None = None) -> dict:
     }
 
 
+def get_student_profiles(data: dict) -> dict:
+    return data.setdefault("student_profiles", {})
+
+
+def serialize_student_profile(student_id: str, data: dict) -> dict:
+    profiles = get_student_profiles(data)
+    profile = profiles.get(student_id, {})
+    cv_filename = profile.get("cv_filename")
+    return {
+        "motivation_letter": profile.get("motivation_letter", ""),
+        "cv_filename": cv_filename,
+        "cv_url": url_for("get_cv_file", filename=cv_filename) if cv_filename else None,
+        "updated_at": profile.get("updated_at", ""),
+    }
+
+
 @app.route("/")
 def root():
     if get_current_user():
@@ -300,6 +319,14 @@ def ssm_page():
     if not user:
         return redirect(url_for("login"))
     return render_template("ssm.html", user=user)
+
+
+@app.get("/uploads/cv/<filename>")
+def get_cv_file(filename: str):
+    user = get_current_user()
+    if not user:
+        return redirect(url_for("login"))
+    return send_from_directory(UPLOAD_DIR, filename)
 
 
 @app.get("/api/interviews")
@@ -462,6 +489,54 @@ def rsvp_event(event_id: str):
     save_data(data)
 
     return jsonify({"ok": True, "message": "RSVP updated."})
+
+
+@app.get("/api/student/profile")
+def get_student_profile():
+    user = require_role("student")
+    if not user:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    data = load_data()
+    return jsonify({"ok": True, "profile": serialize_student_profile(user["id"], data)})
+
+
+@app.post("/api/student/profile")
+def update_student_profile():
+    user = require_role("student")
+    if not user:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    data = load_data()
+    profiles = get_student_profiles(data)
+    current_profile = profiles.get(user["id"], {})
+
+    motivation_letter = request.form.get("motivation_letter", "").strip()
+    cv_file = request.files.get("cv_file")
+    cv_filename = current_profile.get("cv_filename")
+
+    if cv_file and cv_file.filename:
+        safe_name = secure_filename(cv_file.filename)
+        if not safe_name:
+            return jsonify({"ok": False, "message": "Invalid CV filename."}), 400
+
+        extension = Path(safe_name).suffix.lower()
+        if extension not in {".pdf", ".doc", ".docx"}:
+            return jsonify({"ok": False, "message": "CV file must be PDF, DOC, or DOCX."}), 400
+
+        stamped_name = f"{user['id']}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}{extension}"
+        cv_path = UPLOAD_DIR / stamped_name
+        cv_file.save(cv_path)
+        cv_filename = stamped_name
+
+    profiles[user["id"]] = {
+        "motivation_letter": motivation_letter,
+        "cv_filename": cv_filename,
+        "updated_at": datetime.utcnow().isoformat() + "Z",
+    }
+    save_data(data)
+
+    return jsonify({"ok": True, "profile": serialize_student_profile(user["id"], data)})
 
 
 @app.get("/api/student/exams")
@@ -643,7 +718,7 @@ def create_exam():
 
 @app.get("/api/mentor/students")
 def mentor_students():
-    user = require_role("mentor")
+    user = require_role("mentor", "ssm")
     if not user:
         return jsonify({"ok": False, "message": "Unauthorized"}), 401
 
@@ -686,6 +761,7 @@ def mentor_students():
                 "email": student["email"],
                 "exam_scores": exam_scores,
                 "latest_analysis": latest_analysis,
+                "profile": serialize_student_profile(student["id"], data),
             }
         )
 

@@ -145,6 +145,13 @@
       }
     }
   ],
+  "student_profiles": {
+    "student-1": {
+      "motivation_letter": "I am superman",
+      "cv_filename": null,
+      "updated_at": "2026-04-08T14:57:16.037660Z"
+    }
+  },
   "scores": {
     "student-1": {
       "exam-1": {

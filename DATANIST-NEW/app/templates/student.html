@@ -16,6 +16,21 @@
   <div id="analysis-list" class="stack"></div>
 </section>
 
+<section class="card" id="student-profile">
+  <h3>Profile</h3>
+  <form id="student-profile-form" class="stack" enctype="multipart/form-data">
+    <label>Upload CV (PDF, DOC, DOCX)</label>
+    <input id="student-cv-file" name="cv_file" type="file" accept=".pdf,.doc,.docx" />
+    <p id="student-cv-current" class="muted"></p>
+
+    <label>Motivation Letter</label>
+    <textarea id="student-motivation-letter" name="motivation_letter" rows="6" placeholder="Write your motivation letter..."></textarea>
+
+    <button type="submit" class="btn">Save Profile</button>
+    <p id="student-profile-message" class="muted"></p>
+  </form>
+</section>
+
 <section class="card" id="student-interviews">
   <h3>Interview Slots</h3>
   <div id="student-interview-list" class="stack"></div>

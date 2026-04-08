@@ -11,6 +11,15 @@ function byId(id) {
   return document.getElementById(id);
 }
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function optionLetterToIndex(letter) {
   const map = { A: 0, B: 1, C: 2, D: 3 };
   return map[String(letter || "").toUpperCase()];
@@ -300,7 +309,50 @@ async function initStudentDashboard() {
   const analysisList = byId("analysis-list");
   const studentInterviewList = byId("student-interview-list");
   const studentEventList = byId("student-event-list");
+  const profileForm = byId("student-profile-form");
   if (!examList) return;
+
+  if (profileForm) {
+    const profileRes = await fetch("/api/student/profile");
+    const profileData = await profileRes.json();
+    if (profileData.ok) {
+      const profile = profileData.profile || {};
+      byId("student-motivation-letter").value = profile.motivation_letter || "";
+      byId("student-cv-current").innerHTML = profile.cv_url
+        ? `Current CV: <a href="${profile.cv_url}" target="_blank">${escapeHtml(profile.cv_filename)}</a>`
+        : "No CV uploaded yet.";
+    }
+
+    profileForm.onsubmit = async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData();
+      formData.append("motivation_letter", byId("student-motivation-letter").value || "");
+      const cvInput = byId("student-cv-file");
+      if (cvInput?.files?.[0]) {
+        formData.append("cv_file", cvInput.files[0]);
+      }
+
+      const response = await fetch("/api/student/profile", {
+        method: "POST",
+        body: formData,
+      });
+      const result = await response.json();
+
+      const messageNode = byId("student-profile-message");
+      if (!result.ok) {
+        messageNode.textContent = result.message || "Could not save profile.";
+        return;
+      }
+
+      messageNode.textContent = "Profile saved successfully.";
+      const profile = result.profile || {};
+      byId("student-cv-current").innerHTML = profile.cv_url
+        ? `Current CV: <a href="${profile.cv_url}" target="_blank">${escapeHtml(profile.cv_filename)}</a>`
+        : "No CV uploaded yet.";
+      if (cvInput) cvInput.value = "";
+    };
+  }
 
   const examsRes = await fetch("/api/student/exams");
   const examsData = await examsRes.json();
@@ -520,7 +572,7 @@ async function initMentorDashboard() {
     message.textContent = `Exam created successfully: ${result.exam_id}`;
     form.reset();
     byId("questions-container").innerHTML = "";
-    loadMentorStudents();
+    await loadStaffStudents("mentor-students");
   });
 
   if (interviewBtn) {
@@ -775,8 +827,8 @@ async function initSsmDashboard() {
   }
 }
 
-async function loadMentorStudents() {
-  const target = byId("mentor-students");
+async function loadStaffStudents(targetId = "mentor-students") {
+  const target = byId(targetId);
   if (!target) return;
 
   const res = await fetch("/api/mentor/students");
@@ -796,17 +848,36 @@ async function loadMentorStudents() {
       : "No weak topics identified";
     const planText = latest?.learning_plan || "No learning plan available yet";
     const examRef = latest?.exam_name ? `Latest analysis (${latest.exam_name})` : "Latest analysis";
+    const cvUrl = s.profile?.cv_url;
+    const cvName = s.profile?.cv_filename || "No CV uploaded";
+    const motivationLetter = s.profile?.motivation_letter || "No motivation letter yet.";
 
-    const card = document.createElement("div");
-    card.className = "exam-item";
-    card.innerHTML = `
-      <strong>${s.name}</strong>
-      <p>${s.email}</p>
+    const summary = document.createElement("button");
+    summary.className = "btn btn-secondary";
+    summary.type = "button";
+    summary.textContent = s.name;
+
+    const detail = document.createElement("div");
+    detail.className = "exam-item hidden";
+    detail.innerHTML = `
+      <p><strong>Email:</strong> ${s.email}</p>
       <p>${scoresText}</p>
       <p><strong>${examRef}</strong></p>
       <p><strong>Weak topics:</strong> ${weakTopicsText}</p>
       <pre class="plan">${planText}</pre>
+      <p><strong>CV:</strong> ${cvUrl ? `<a href="${cvUrl}" target="_blank">${escapeHtml(cvName)}</a>` : escapeHtml(cvName)}</p>
+      <p><strong>Motivation Letter:</strong></p>
+      <pre class="plan">${escapeHtml(motivationLetter)}</pre>
     `;
+
+    summary.addEventListener("click", () => {
+      detail.classList.toggle("hidden");
+    });
+
+    const card = document.createElement("div");
+    card.className = "exam-item";
+    card.appendChild(summary);
+    card.appendChild(detail);
     target.appendChild(card);
   });
 }
@@ -816,4 +887,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   await initStudentDashboard();
   await initMentorDashboard();
   await initSsmDashboard();
+  await loadStaffStudents("mentor-students");
+  await loadStaffStudents("ssm-students");
 });
