@@ -223,7 +223,9 @@
         "15:00",
         "18:00"
       ],
-      "bookings": {}
+      "bookings": {
+        "student-1": "15:00"
+      }
     }
   ],
   "events": [
@@ -236,7 +238,7 @@
       "created_by": "mentor-1",
       "created_by_role": "mentor",
       "responses": {
-        "student-1": "join"
+        "student-1": "not_join"
       }
     }
   ],
