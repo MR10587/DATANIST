@@ -2,7 +2,7 @@
   "users": [
     {
       "id": "mentor-1",
-      "name": "Mentor User",
+      "name": "Ruslan Hamidov",
       "role": "mentor",
       "email": "mentor@holberton.az",
       "phone": "+994 50 111 22 33",
@@ -10,7 +10,7 @@
     },
     {
       "id": "student-1",
-      "name": "Student User",
+      "name": "Ramal Mirzazada",
       "role": "student",
       "email": "student@holberton.az",
       "phone": "+994 50 200 10 01",
@@ -42,7 +42,7 @@
     },
     {
       "id": "ssm-1",
-      "name": "SSM User",
+      "name": "Aylin taghizade",
       "role": "ssm",
       "email": "ssm@holberton.az",
       "phone": "+994 50 333 44 55",
