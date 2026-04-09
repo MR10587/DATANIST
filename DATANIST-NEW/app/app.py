@@ -43,14 +43,39 @@ app = Flask(
 )
 app.secret_key = os.getenv("SECRET_KEY", "holberton-datanist-dev-secret")
 ATTENDANCE_WEEKLY_GOAL_HOURS = 15.0
-LINKEDIN_API_URL = "https://linkedin-job-search-api.p.rapidapi.com/active-jb-7d"
-LINKEDIN_API_HOST = "linkedin-job-search-api.p.rapidapi.com"
+JSEARCH_API_URL = "https://jsearch.p.rapidapi.com/search"
+JSEARCH_API_HOST = "jsearch.p.rapidapi.com"
+JSEARCH_DEFAULT_QUERY = "developer jobs in chicago"
+MOCK_CAREER_JOBS = [
+    {
+        "title": "Backend Developer",
+        "company": "Acme Tech",
+        "location": "Chicago, IL",
+        "link": "https://example.com/jobs/backend-developer",
+        "listed_at": "Recent",
+    },
+    {
+        "title": "Python Developer",
+        "company": "Northwind Systems",
+        "location": "Chicago, IL",
+        "link": "https://example.com/jobs/python-developer",
+        "listed_at": "Recent",
+    },
+    {
+        "title": "Junior Software Engineer",
+        "company": "Blue Lake Labs",
+        "location": "Chicago, IL",
+        "link": "https://example.com/jobs/junior-software-engineer",
+        "listed_at": "Recent",
+    },
+]
 
 
 def load_data() -> dict:
     """Load data from seed_data.json with error handling."""
     try:
-        with DATA_FILE.open("r", encoding="utf-8") as f:
+        # utf-8-sig handles both plain UTF-8 and UTF-8 with BOM.
+        with DATA_FILE.open("r", encoding="utf-8-sig") as f:
             return json.load(f)
     except FileNotFoundError:
         print(f"ERROR: Data file not found at {DATA_FILE}")
@@ -267,6 +292,28 @@ def _normalize_job_item(job: dict) -> dict:
     }
 
 
+def _normalize_jsearch_job_item(job: dict) -> dict:
+    title = job.get("job_title") or job.get("title") or "Unknown role"
+    company = job.get("employer_name") or job.get("company_name") or "Unknown company"
+    location = (
+        job.get("job_location")
+        or job.get("job_city")
+        or job.get("job_country")
+        or "Location not specified"
+    )
+    link = job.get("job_apply_link") or job.get("job_google_link") or ""
+    listed_at = job.get("job_posted_at_datetime_utc") or job.get("job_posted_human_readable") or ""
+
+    return {
+        "title": str(title).strip(),
+        "company": str(company).strip(),
+        "location": str(location).strip(),
+        "link": str(link).strip(),
+        "listed_at": str(listed_at).strip(),
+        "description": str(job.get("job_description") or "").strip(),
+    }
+
+
 def infer_student_job_preferences(student_id: str, data: dict) -> dict:
     profile = get_student_profiles(data).get(student_id, {})
     cv_keywords = [str(item).lower() for item in profile.get("cv_keywords", []) if str(item).strip()]
@@ -333,32 +380,31 @@ def score_job_match(job_item: dict, keywords: list[str]) -> int:
     return score
 
 
-def fetch_linkedin_developer_jobs(
+def fetch_jsearch_developer_jobs(
     limit: int = 8,
-    title_filter: str = '"Data Engineer"',
-    location_filter: str = "",
     keywords: list[str] | None = None,
-) -> tuple[list[dict], str | None]:
+) -> tuple[list[dict], str | None, int | None]:
     rapidapi_key = os.getenv("RAPIDAPI_KEY", "").strip()
     if not rapidapi_key:
-        return [], "RAPIDAPI_KEY is not configured."
+        return [], "RAPIDAPI_KEY is not configured.", None
 
     headers = {
         "Content-Type": "application/json",
-        "x-rapidapi-host": LINKEDIN_API_HOST,
+        "x-rapidapi-host": JSEARCH_API_HOST,
         "x-rapidapi-key": rapidapi_key,
     }
     params = {
-        "limit": str(max(1, min(limit, 10))),
-        "offset": "0",
-        "title_filter": title_filter,
-        "description_type": "text",
+        "query": JSEARCH_DEFAULT_QUERY,
+        "page": "1",
+        "num_pages": "1",
+        "country": "us",
+        "date_posted": "all",
     }
-    if location_filter.strip():
-        params["location_filter"] = location_filter.strip()
 
     try:
-        response = requests.get(LINKEDIN_API_URL, headers=headers, params=params, timeout=20)
+        response = requests.get(JSEARCH_API_URL, headers=headers, params=params, timeout=20)
+        if response.status_code == 429:
+            return [], "JSearch API request limit reached. Showing cached jobs.", 429
         response.raise_for_status()
         payload = response.json()
 
@@ -373,7 +419,7 @@ def fetch_linkedin_developer_jobs(
         for item in raw_items:
             if not isinstance(item, dict):
                 continue
-            normalized_item = _normalize_job_item(item)
+            normalized_item = _normalize_jsearch_job_item(item)
             role = normalized_item["title"].lower()
             if any(keyword in role for keyword in ("developer", "engineer", "software", "backend", "frontend", "full stack", "data")):
                 normalized.append(normalized_item)
@@ -388,10 +434,10 @@ def fetch_linkedin_developer_jobs(
             ranked = [item for _, item in scored]
             for item in ranked:
                 item.pop("description", None)
-            return ranked[:limit], None
-        return [], "No suitable jobs found in the last 7 days."
+            return ranked[:limit], None, response.status_code
+        return [], "No suitable jobs found from JSearch.", response.status_code
     except Exception as exc:
-        return [], f"LinkedIn API request failed: {str(exc)}"
+        return [], f"JSearch API request failed: {str(exc)}", None
 
 
 def derive_weak_topics(wrong_questions: list[str]) -> list[str]:
@@ -1455,16 +1501,51 @@ def get_student_career_jobs():
         return jsonify({"ok": False, "message": "Unauthorized"}), 401
 
     data = load_data()
+    cache = data.setdefault("career_jobs_cache", {})
+    cached_jobs = cache.get("items") if isinstance(cache, dict) else []
+    if not isinstance(cached_jobs, list):
+        cached_jobs = []
+
+    # Cache-first response to avoid runtime API delay.
+    if cached_jobs:
+        return jsonify(
+            {
+                "ok": True,
+                "jobs": cached_jobs,
+                "source": "cache",
+                "updated_at": cache.get("updated_at", ""),
+            }
+        )
+
     preferences = infer_student_job_preferences(user["id"], data)
-    jobs, error_message = fetch_linkedin_developer_jobs(
+
+    jobs, error_message, status_code = fetch_jsearch_developer_jobs(
         limit=8,
-        title_filter=preferences["title_filter"],
-        location_filter=preferences["location_filter"],
         keywords=preferences["keywords"],
     )
-    if error_message:
-        return jsonify({"ok": False, "message": error_message, "jobs": jobs}), 502
-    return jsonify({"ok": True, "jobs": jobs})
+
+    if jobs:
+        cache["items"] = jobs
+        cache["updated_at"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        cache["source"] = "jsearch"
+        cache["query"] = JSEARCH_DEFAULT_QUERY
+        save_data(data)
+        return jsonify({"ok": True, "jobs": jobs, "source": "live"})
+
+    # If live API fails, persist and return mock jobs to keep UX fast and stable.
+    cache["items"] = MOCK_CAREER_JOBS
+    cache["updated_at"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    cache["source"] = "mock"
+    cache["query"] = JSEARCH_DEFAULT_QUERY
+    save_data(data)
+    return jsonify(
+        {
+            "ok": True,
+            "jobs": MOCK_CAREER_JOBS,
+            "source": "mock",
+            "message": error_message or "Showing mock jobs because live source is unavailable.",
+        }
+    )
 
 
 @app.get("/api/student/attendance")

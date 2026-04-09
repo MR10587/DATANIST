@@ -484,6 +484,69 @@
       }
     }
   },
+  "career_jobs_cache": {
+    "items": [
+      {
+        "title": "Full-Stack Developer (React / .NET)",
+        "company": "recruit22 LLC",
+        "location": "Chicago, IL",
+        "link": "https://www.indeed.com/viewjob?jk=8e1cab62e15e61e2",
+        "listed_at": "2026-04-08T23:00:00.000Z"
+      },
+      {
+        "title": "Fullstack Developer/Monitoring role",
+        "company": "MAXQ Infotech",
+        "location": "Anywhere",
+        "link": "https://www.linkedin.com/jobs/view/fullstack-developer-monitoring-role-at-maxq-infotech-4396314374",
+        "listed_at": "2026-04-08T16:00:00.000Z"
+      },
+      {
+        "title": "Software Engineer - Full Stack in Chicago, Illinois.",
+        "company": "US Bank",
+        "location": "Chicago, IL",
+        "link": "https://www.ziprecruiter.com/c/U.S.-Bank/Job/Software-Engineer-Full-Stack-in-Chicago,-Illinois./-in-Chicago,IL?jid=75645eb8e5f3a730",
+        "listed_at": "2026-04-06T00:00:00.000Z"
+      },
+      {
+        "title": "Senior Developer - .Net/AWS",
+        "company": "United Airlines",
+        "location": "Chicago, IL",
+        "link": "https://careers.united.com/us/en/job/WHQ00025851/Senior-Developer-Net-AWS",
+        "listed_at": "2026-04-08T00:00:00.000Z"
+      },
+      {
+        "title": "Software Engineer, Test",
+        "company": "Cboe Global Markets",
+        "location": "Chicago, IL",
+        "link": "https://careers.cboe.com/us/en/job/R-4331/Software-Engineer-Test",
+        "listed_at": "2026-03-09T00:00:00.000Z"
+      },
+      {
+        "title": "Developer",
+        "company": "SAP",
+        "location": "Chicago, IL",
+        "link": "https://jobs.sap.com/job/Chicago-Developer-IL-60606/1380907333/",
+        "listed_at": "2026-04-06T00:00:00.000Z"
+      },
+      {
+        "title": "SharePoint/PowerPlatform developer_Chicago, IL_Onsite _Full time Role",
+        "company": "AceStack",
+        "location": "Chicago, IL",
+        "link": "https://www.linkedin.com/jobs/view/sharepoint-powerplatform-developer-chicago-il-onsite-full-time-role-at-acestack-4396331503",
+        "listed_at": "2026-04-08T16:00:00.000Z"
+      },
+      {
+        "title": "Principal Developer - IT",
+        "company": "United Airlines",
+        "location": "Chicago, IL",
+        "link": "https://careers.united.com/us/en/job/WHQ00026134/Principal-Developer-IT",
+        "listed_at": "2026-04-08T00:00:00.000Z"
+      }
+    ],
+    "updated_at": "2026-04-09T04:00:43Z",
+    "source": "jsearch",
+    "query": "developer jobs in chicago"
+  },
   "notification_reads": {
     "student-1": [
       "event-event-1-student-1",
