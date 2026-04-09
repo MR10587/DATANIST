@@ -891,6 +891,34 @@ function renderCalendar(interviews, events, targetId, mode = "student") {
   });
 }
 
+function initStaggerMotion() {
+  const containers = Array.from(document.querySelectorAll(".stack, .insights-grid"));
+  if (!containers.length) return;
+
+  const applyStagger = (container) => {
+    Array.from(container.children).forEach((child, index) => {
+      if (!(child instanceof HTMLElement)) return;
+      child.style.setProperty("--stagger", String(Math.min(index + 1, 10)));
+    });
+  };
+
+  containers.forEach((container) => applyStagger(container));
+
+  const observer = new MutationObserver((mutations) => {
+    const touched = new Set();
+    mutations.forEach((mutation) => {
+      if (mutation.type === "childList" && mutation.target instanceof HTMLElement) {
+        touched.add(mutation.target);
+      }
+    });
+    touched.forEach((container) => applyStagger(container));
+  });
+
+  containers.forEach((container) => {
+    observer.observe(container, { childList: true });
+  });
+}
+
 function initDashboardPanels() {
   const layouts = document.querySelectorAll(".dashboard-layout");
 
@@ -900,6 +928,8 @@ function initDashboardPanels() {
     if (!links.length || !panels.length) return;
 
     const panelIds = new Set(panels.map((panel) => panel.id));
+    const layoutScope = links[0].dataset.sectionTarget?.split("-")[0] || "dashboard";
+    const storageKey = `${layoutScope}-dashboard-active-panel`;
 
     function activatePanel(targetId) {
       if (!panelIds.has(targetId)) return false;
@@ -918,10 +948,32 @@ function initDashboardPanels() {
         }
       });
 
+      try {
+        localStorage.setItem(storageKey, targetId);
+      } catch (_error) {
+        // localStorage may be blocked; ignore gracefully.
+      }
+
+      if (window.location.hash !== `#${targetId}`) {
+        history.replaceState(null, "", `#${targetId}`);
+      }
+
       return true;
     }
 
-    const defaultTarget = links[0].dataset.sectionTarget;
+    const fromHash = String(window.location.hash || "").replace(/^#/, "");
+    let fromStorage = "";
+    try {
+      fromStorage = String(localStorage.getItem(storageKey) || "");
+    } catch (_error) {
+      fromStorage = "";
+    }
+
+    const defaultTarget = panelIds.has(fromHash)
+      ? fromHash
+      : panelIds.has(fromStorage)
+        ? fromStorage
+        : links[0].dataset.sectionTarget;
     activatePanel(defaultTarget);
 
     links.forEach((link) => {
@@ -1939,6 +1991,7 @@ async function renderStaffInsights(prefix, students) {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
+  initStaggerMotion();
   initDashboardPanels();
   await initLogin();
   await initStudentDashboard();
